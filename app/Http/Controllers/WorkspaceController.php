@@ -16,6 +16,32 @@ use Symfony\Component\HttpFoundation\Response;
 
 class WorkspaceController extends Controller
 {
+    public function overview(Request $r): View
+    {
+        abort_unless(in_array($r->user()->role, ['intern', 'supervisor']), 403);
+        $supervising = $r->user()->role === 'supervisor';
+        $ids = $supervising ? DB::table('users')->where('role', 'intern')->where('supervisor_id', $r->user()->id)->pluck('id')->all() : [$r->user()->id];
+        $today = now('Asia/Kuala_Lumpur')->toDateString();
+        $base = DB::table('work_tasks')->whereIn('assigned_to', $ids)->whereNull('archived_at');
+        $counts = [
+            'open' => (clone $base)->where('status', '!=', 'completed')->count(),
+            'overdue' => (clone $base)->where('status', '!=', 'completed')->where('due_date', '<', $today)->count(),
+            'review' => (clone $base)->where('status', 'review')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+        ];
+        $tasks = (clone $base)->where('status', '!=', 'completed')->orderByRaw('due_date IS NULL')->orderBy('due_date')->orderByDesc('id')->limit(6)->get();
+        $names = DB::table('users')->whereIn('id', $ids)->pluck('name', 'id');
+        $pendingLogs = DB::table('daily_logs')->whereIn('user_id', $ids)->where('status', 'pending')->count();
+        $pendingAttendance = DB::table('attendance_records')->whereIn('user_id', $ids)->where('status', 'pending')->count();
+        $pendingDue = DB::table('due_date_requests')->whereIn('requested_by', $ids)->where('status', 'pending')->count();
+        $log = DB::table('daily_logs')->where('user_id', $r->user()->id)->where('activity_date', $today)->first();
+        $attendance = DB::table('attendance_records')->where('user_id', $r->user()->id)->where('attendance_date', $today)->first();
+        $supervisor = DB::table('users')->where('id', $r->user()->supervisor_id)->first();
+        $workload = DB::table('users as u')->leftJoinSub((clone $base)->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to'), 'w', 'w.assigned_to', '=', 'u.id')->whereIn('u.id', $ids)->select('u.name', 'u.id', 'u.is_active', DB::raw('COALESCE(w.total, 0) as total'))->orderByDesc('total')->orderBy('u.name')->paginate(10)->withQueryString();
+
+        return view('management.role-dashboard', compact('supervising', 'counts', 'tasks', 'names', 'pendingLogs', 'pendingAttendance', 'pendingDue', 'log', 'attendance', 'supervisor', 'workload', 'today'));
+    }
+
     private function audit(Request $r, string $action, string $subject): void
     {
         DB::table('management_activity')->insert(['actor_id' => $r->user()->id, 'action' => $action, 'subject_email' => mb_substr($subject, 0, 255), 'created_at' => now(), 'updated_at' => now()]);
@@ -152,6 +178,9 @@ class WorkspaceController extends Controller
     public function tasks(Request $r): View
     {
         $query = $this->tasksQuery($r)->when($r->query('archived') !== '1', fn ($q) => $q->whereNull('archived_at'));
+        if ($r->filled('task')) {
+            $query->where('id', (int) $r->query('task'));
+        }
         if ($r->query('status')) {
             $query->where('status', $r->query('status'));
         }if ($r->query('assignee')) {

@@ -43,6 +43,19 @@ class WorkspaceManagementTest extends TestCase
         }
     }
 
+    public function test_role_dashboards_show_only_the_correct_person_or_team(): void
+    {
+        $sv = $this->supervisor();
+        $intern = $this->intern($sv);
+        $other = $this->intern($this->supervisor());
+        $this->task($intern, $sv, 'Visible team assignment');
+        $this->task($other, $sv, 'Other team confidential task');
+        $this->actingAs($intern)->get(route('dashboard'))->assertRedirect(route('workspace.overview'));
+        $this->get(route('workspace.overview'))->assertOk()->assertSee('Visible team assignment')->assertDontSee('Other team confidential task')->assertSee('Today’s checklist')->assertDontSee('Needs your attention');
+        $this->actingAs($sv)->get(route('workspace.overview'))->assertOk()->assertSee('Visible team assignment')->assertDontSee('Other team confidential task')->assertSee('Needs your attention')->assertDontSee('Today’s checklist');
+        $this->actingAs($this->manager())->get(route('workspace.overview'))->assertForbidden();
+    }
+
     public function test_inactive_users_cannot_continue_existing_sessions(): void
     {
         $user = $this->manager();

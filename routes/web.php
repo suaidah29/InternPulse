@@ -27,7 +27,7 @@ Route::middleware(['auth', EnsureActiveAccount::class])->group(function () {
     Route::get('/dashboard', function () {
         abort_unless(in_array(Auth::user()->role, ['superadmin', 'supervisor', 'intern']), 403);
 
-        return Auth::user()->role === 'superadmin' ? to_route('management.dashboard') : to_route('workspace.tasks');
+        return Auth::user()->role === 'superadmin' ? to_route('management.dashboard') : to_route('workspace.overview');
     })->name('dashboard');
     Route::post('/logout', function (Request $request) {
         Auth::logout();
@@ -52,6 +52,7 @@ Route::middleware(['guest', 'throttle:20,1,management-invite:'])->group(function
 });
 
 Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->name('workspace.')->group(function () {
+    Route::get('/overview', [WorkspaceController::class, 'overview'])->name('overview');
     Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
     Route::post('/team/invite', function (Request $request, SupervisorInvitations $service) {
         abort_unless($request->user()->role === 'supervisor', 403);
