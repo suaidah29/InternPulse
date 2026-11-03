@@ -1,0 +1,6 @@
+@extends('management.shell')
+@section('title','Departments')
+@section('content')
+@include('management.notices')
+<div class="page-heading"><div><p class="eyebrow">{{ $t('TEAM STRUCTURE','STRUKTUR PASUKAN') }}</p><h1>{{ $t('Departments','Jabatan') }}</h1></div></div><section class="glass section-card"><form method="post" action="{{ route('management.departments.store') }}">@csrf<label>{{ $t('New department','Jabatan baharu') }}<input name="name" required maxlength="100" placeholder="e.g. IT"></label><button class="primary-button">+ {{ $t('Add department','Tambah jabatan') }}</button></form></section><section class="glass section-card"><div class="record-list">@foreach($departments as $d)<div class="record-card"><h3>{{ $d->name }}</h3><form method="post" action="{{ route('management.departments.update',$d->id) }}" class="search-form">@csrf<input name="name" value="{{ $d->name }}" required maxlength="100" aria-label="Department name"><button class="quiet-button">{{ $t('Rename','Namakan semula') }}</button></form><form method="post" action="{{ route('management.departments.delete',$d->id) }}" data-confirm="Delete this unused department? / Padam jabatan ini?">@csrf<button class="text-button danger">{{ $t('Delete if unused','Padam jika tidak digunakan') }}</button></form></div>@endforeach</div></section>
+@endsection
