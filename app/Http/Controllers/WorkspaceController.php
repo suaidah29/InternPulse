@@ -64,6 +64,13 @@ class WorkspaceController extends Controller
             ->select('u.*', 's.name as supervisor_name')->orderBy('u.role')->orderBy('u.name')->paginate(15)->withQueryString(), 'supervisors' => DB::table('users')->where('role', 'supervisor')->where('is_active', true)->orderBy('name')->get(), 'departments' => DB::table('departments')->orderBy('name')->get()]);
     }
 
+    public function team(Request $r): View
+    {
+        abort_unless($r->user()->role === 'supervisor', 403);
+
+        return view('management.team', ['people' => DB::table('users')->where('role', 'intern')->where('supervisor_id', $r->user()->id)->when($r->query('q'), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$r->query('q').'%')->orWhere('email', 'like', '%'.$r->query('q').'%')))->orderBy('name')->paginate(15)->withQueryString()]);
+    }
+
     public function updatePerson(Request $r, int $id): RedirectResponse
     {
         $person = DB::table('users')->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();

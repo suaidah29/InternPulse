@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Middleware\EnsureActiveAccount;
+use App\Services\SupervisorInvitations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +21,9 @@ Route::post('/login', function (Request $request) {
     return to_route('dashboard');
 })->middleware('throttle:6,1');
 Route::middleware(['auth', EnsureActiveAccount::class])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/images/{kind}', [ProfileController::class, 'image'])->name('profile.image');
     Route::get('/dashboard', function () {
         abort_unless(in_array(Auth::user()->role, ['superadmin', 'supervisor', 'intern']), 403);
 
@@ -47,6 +52,13 @@ Route::middleware(['guest', 'throttle:20,1,management-invite:'])->group(function
 });
 
 Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->name('workspace.')->group(function () {
+    Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
+    Route::post('/team/invite', function (Request $request, SupervisorInvitations $service) {
+        abort_unless($request->user()->role === 'supervisor', 403);
+        $request->merge(['supervisor_id' => $request->user()->id]);
+
+        return app(WorkspaceController::class)->inviteIntern($request, $service);
+    })->middleware('throttle:20,1')->name('team.invite');
     Route::get('/tasks', [WorkspaceController::class, 'tasks'])->name('tasks');
     Route::post('/tasks', [WorkspaceController::class, 'saveTask'])->name('tasks.store');
     Route::post('/tasks/{id}/edit', [WorkspaceController::class, 'saveTask'])->name('tasks.update');
@@ -74,5 +86,5 @@ Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse']
     Route::post('/guides/{id}/delete', [WorkspaceController::class, 'deleteGuide'])->name('guides.delete');
     Route::get('/reports', [WorkspaceController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [WorkspaceController::class, 'export'])->name('reports.export');
-    Route::get('/activity',[WorkspaceController::class, 'activity'])->name('activity');
+    Route::get('/activity', [WorkspaceController::class, 'activity'])->name('activity');
 });
