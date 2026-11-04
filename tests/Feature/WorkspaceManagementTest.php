@@ -54,7 +54,7 @@ class WorkspaceManagementTest extends TestCase
         $visible = $this->task($intern, $sv, 'Website team work');
         $hidden = $this->task($other, $manager, 'Website confidential work');
         DB::table('work_tasks')->whereIn('id', [$visible, $hidden])->update(['due_date' => $date]);
-        $this->actingAs($sv)->get(route('workspace.overview'))->assertOk()->assertSee('Deadline calendar')->assertSee('tiger-laptop.png');
+        $this->actingAs($sv)->get(route('workspace.overview'))->assertOk()->assertSee('Deadline calendar')->assertSee('welcome-banner');
         $summary = DashboardSummary::forUser($sv);
         $this->assertSame(1, (int) $summary['statuses']['todo']);
         $this->assertSame(1, (int) $summary['calendarCounts'][$date]);
