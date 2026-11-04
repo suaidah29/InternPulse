@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\PasswordRecoveryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Middleware\EnsureActiveAccount;
@@ -11,6 +12,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->to(asset('landing/index.html')))->name('home');
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordRecoveryController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordRecoveryController::class, 'send'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordRecoveryController::class, 'form'])->name('password.reset');
+    Route::post('/reset-password', [PasswordRecoveryController::class, 'reset'])->middleware('throttle:6,1')->name('password.update');
+});
 Route::get('/login', fn () => Auth::check() ? to_route('dashboard') : view('login'))->name('login');
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate(['email' => 'required|email', 'password' => 'required|string']);
@@ -52,6 +59,11 @@ Route::middleware(['guest', 'throttle:20,1,management-invite:'])->group(function
 });
 
 Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->name('workspace.')->group(function () {
+    Route::get('/notifications', [WorkspaceController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/read', [WorkspaceController::class, 'readNotifications'])->name('notifications.read');
+    Route::get('/tasks/{id}', [WorkspaceController::class, 'taskDetail'])->whereNumber('id')->name('tasks.show');
+    Route::post('/tasks/{id}/comments', [WorkspaceController::class, 'comment'])->middleware('throttle:30,1')->name('tasks.comment');
+    Route::post('/tasks/{id}/decision', [WorkspaceController::class, 'decideTask'])->name('tasks.decision');
     Route::get('/overview', [WorkspaceController::class, 'overview'])->name('overview');
     Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
     Route::post('/team/invite', function (Request $request, SupervisorInvitations $service) {

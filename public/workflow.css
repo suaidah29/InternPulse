@@ -1,0 +1,7 @@
+.password-checklist{list-style:none;margin:14px 0 22px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:9px;font-size:12px;color:var(--secondary)}
+.password-checklist li:before{content:'○';margin-right:8px}.password-checklist li.met{color:#287653}.password-checklist li.met:before{content:'✓'}
+:root[data-theme=dark] .password-checklist li.met{color:#9bdfbd}
+.assignee-search{margin-bottom:8px!important}.record-card [data-log-suggestion]{margin:5px}
+.management-page .app-layout:has(.accept-main){display:block}.management-page .accept-main{max-width:640px;margin:32px auto}
+.management-page .record-list .section-card .read-text{max-height:90px;overflow:hidden}
+@media(max-width:480px){.password-checklist{grid-template-columns:1fr}}

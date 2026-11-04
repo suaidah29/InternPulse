@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const bulk=document.getElementById('import');foldSection(bulk?.closest('.lower-grid'),'Bulk invitations & recent activity','Jemputan pukal & aktiviti terkini');
  const openTarget=()=>{const target=document.getElementById(location.hash.slice(1));if(target){let p=target.parentElement;while(p){if(p.tagName==='DETAILS')p.open=true;p=p.parentElement;}}};window.addEventListener('hashchange',openTarget);openTarget();
  document.querySelectorAll('select[name="assigned_to"]').forEach(select=>{
-  if(!select.closest('form')?.action.endsWith('/tasks'))return;
+  if(select.querySelector('option[value=""]') || !select.closest('form')?.action.endsWith('/tasks'))return;
   const option=new Option('Choose a person / Pilih individu','',true,true);option.disabled=true;select.prepend(option);
  });
  document.querySelectorAll('.module-nav a').forEach(a=>{const label=a.querySelector('[data-en]');if(!label)return;const sync=()=>{a.title=label.textContent;a.setAttribute('aria-label',label.textContent)};sync();new MutationObserver(sync).observe(label,{childList:true,subtree:true,characterData:true});});

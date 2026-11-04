@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\SupervisorInvitations;
+use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -192,11 +193,58 @@ class WorkspaceController extends Controller
         return view('management.tasks', ['tasks' => $tasks, 'names' => $names, 'members' => $this->members($r), 'files' => DB::table('work_files')->whereIn('task_id', $tasks->pluck('id'))->get()->groupBy('task_id'), 'canAssign' => $r->user()->role !== 'intern', 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to')]);
     }
 
+    public function taskDetail(Request $r, int $id): View
+    {
+        $task = $this->task($r, $id);
+
+        return view('management.task-detail', ['members' => $this->members($r), 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to'), 'canAssign' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id, 'task' => $task, 'owner' => DB::table('users')->find($task->assigned_to), 'files' => DB::table('work_files')->where('task_id', $id)->get(), 'history' => DB::table('task_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->where('a.task_id', $id)->select('a.*', 'u.name')->orderByDesc('a.id')->paginate(15), 'canReview' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id]);
+    }
+
+    public function comment(Request $r, int $id): RedirectResponse
+    {
+        $task = $this->task($r, $id);
+        abort_if($task->archived_at, 409);
+        $data = $r->validate(['comment' => 'required|string|max:4000']);
+        WorkspaceActivity::record($task, $r->user()->id, 'comment', $data['comment']);
+
+        return back()->with('success', 'Comment added. / Komen ditambah.');
+    }
+
+    public function decideTask(Request $r, int $id): RedirectResponse
+    {
+        $data = $r->validate(['decision' => ['required', Rule::in(['completed', 'in_progress'])], 'comment' => 'required|string|min:3|max:4000']);
+        DB::transaction(function () use ($r, $id, $data): void {
+            $task = $this->tasksQuery($r)->where('id', $id)->lockForUpdate()->firstOrFail();
+            $this->reviewer($r, $task->assigned_to);
+            abort_if($task->assigned_to === $r->user()->id || $task->archived_at || $task->status !== 'review', 409);
+            DB::table('work_tasks')->where('id', $id)->update(['status' => $data['decision'], 'completed_at' => $data['decision'] === 'completed' ? now() : null, 'updated_at' => now()]);
+            WorkspaceActivity::record($task, $r->user()->id, $data['decision'] === 'completed' ? 'approved' : 'changes_requested', $data['comment']);
+        });
+
+        return back()->with('success', 'Review saved. / Semakan disimpan.');
+    }
+
+    public function notifications(Request $r): View
+    {
+        return view('management.notifications', ['notifications' => DB::table('workspace_notifications')->where('user_id', $r->user()->id)->orderByDesc('id')->paginate(20), 'deadlines' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->whereNotNull('due_date')->where('due_date', '<=', now('Asia/Kuala_Lumpur')->addDays(2)->toDateString())->orderBy('due_date')->limit(20)->get()]);
+    }
+
+    public function readNotifications(Request $r): RedirectResponse
+    {
+        DB::table('workspace_notifications')->where('user_id', $r->user()->id)->whereNull('read_at')->update(['read_at' => now()]);
+
+        return back()->with('success', 'Marked as read. / Ditandakan dibaca.');
+    }
+
     public function saveTask(Request $r, ?int $id = null): RedirectResponse
     {
         abort_if($r->user()->role === 'intern', 403);
         $old = $id ? $this->task($r, $id) : null;
+        abort_if($old && $old->assigned_to === $r->user()->id && $r->user()->role === 'supervisor', 403);
         $data = $r->validate(['title' => 'required|string|max:180', 'description' => 'nullable|string|max:10000', 'assigned_to' => ['required', 'integer', Rule::in(array_map(fn ($m) => $m->id, $this->members($r)))], 'priority' => ['required', Rule::in(['normal', 'urgent'])], 'status' => ['required', Rule::in(['todo', 'in_progress', 'review', 'completed'])], 'due_date' => 'nullable|date_format:Y-m-d', 'category' => 'nullable|string|max:100']);
+        if ($data['status'] === 'completed' && ($old?->status !== 'completed' || (int) $data['assigned_to'] !== $old->assigned_to)) {
+            throw ValidationException::withMessages(['status' => 'Use Approve completion on the task review. / Gunakan Sahkan selesai pada semakan tugasan.']);
+        }
         $member = DB::table('users')->where('id', $data['assigned_to'])->firstOrFail();
         $data['department'] = $member->department;
         $data['completed_at'] = $data['status'] === 'completed' ? ($old?->completed_at ?? now()) : null;
@@ -206,7 +254,9 @@ class WorkspaceController extends Controller
             $id = DB::table('work_tasks')->insertGetId($data + ['created_by' => $r->user()->id, 'created_at' => now(), 'updated_at' => now()]);
         }$this->audit($r, 'task.saved', $data['title']);
 
-        return back()->with('success', 'Task saved. / Tugasan disimpan.');
+        WorkspaceActivity::record(DB::table('work_tasks')->find($id), $r->user()->id, $old ? 'updated' : 'assigned', 'Status: '.$data['status']);
+
+        return to_route('workspace.tasks.show', $id)->with('success', 'Task saved. / Tugasan disimpan.');
     }
 
     public function archiveTask(Request $r, int $id): RedirectResponse
@@ -223,6 +273,7 @@ class WorkspaceController extends Controller
     {
         $task = $this->task($r, $id);
         abort_if($task->archived_at || $task->status === 'completed', 409);
+        abort_unless($task->assigned_to === $r->user()->id, 403);
         $data = $r->validate(['status' => ['required', Rule::in(['todo', 'in_progress', 'review'])], 'progress_note' => 'nullable|string|max:10000', 'work_url' => 'nullable|url:http,https|max:2000', 'evidence' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,docx|max:10240']);
         unset($data['evidence']);
         $data['completed_at'] = null;
@@ -232,6 +283,7 @@ class WorkspaceController extends Controller
             DB::table('work_files')->insert(['task_id' => $id, 'uploaded_by' => $r->user()->id, 'path' => $path, 'original_name' => $r->file('evidence')->getClientOriginalName(), 'created_at' => now(), 'updated_at' => now()]);
         }
         $this->audit($r, 'task.progress', $task->title);
+        WorkspaceActivity::record($task, $r->user()->id, 'progress', $data['status'].' · '.($data['progress_note'] ?? ''));
 
         return back()->with('success', 'Progress saved. / Kemajuan disimpan.');
     }
@@ -247,6 +299,8 @@ class WorkspaceController extends Controller
                 throw ValidationException::withMessages(['reason' => 'A request is already pending. / Permintaan masih menunggu.']);
             }DB::table('due_date_requests')->insert($data + ['task_id' => $id, 'requested_by' => $r->user()->id, 'created_at' => now(), 'updated_at' => now()]);
         });
+
+        WorkspaceActivity::notify(WorkspaceActivity::reviewers($r->user()->id), $r->user()->id, 'Deadline change requested / Permintaan tarikh akhir', $id);
 
         return back()->with('success', 'Request submitted. The current deadline is unchanged until approved. / Permintaan dihantar.');
     }
@@ -281,6 +335,7 @@ class WorkspaceController extends Controller
                 abort_if($task->archived_at || $task->status === 'completed' || $task->assigned_to !== $row->requested_by, 409);
                 DB::table('work_tasks')->where('id', $row->task_id)->update(['due_date' => $row->requested_date, 'updated_at' => now()]);
             }$this->audit($r, $type.'.'.$data['decision'], 'Record #'.$id);
+            WorkspaceActivity::notify([$uid], $r->user()->id, $type.': '.$data['decision'].' / Semakan dikemas kini', $type === 'due' ? $row->task_id : null);
         });
 
         return back()->with('success', 'Review saved. / Semakan disimpan.');
@@ -289,8 +344,9 @@ class WorkspaceController extends Controller
     public function records(Request $r): View
     {
         $ids = $this->teamIds($r);
+        $suggestions = DB::table('task_activity as a')->join('work_tasks as t', 't.id', '=', 'a.task_id')->where('a.actor_id', $r->user()->id)->where('t.assigned_to', $r->user()->id)->where('a.kind', 'progress')->whereBetween('a.created_at', [now('Asia/Kuala_Lumpur')->startOfDay()->utc(), now('Asia/Kuala_Lumpur')->endOfDay()->utc()])->select('t.title')->distinct()->pluck('title');
 
-        return view('management.records', ['logs' => DB::table('daily_logs')->whereIn('user_id', $ids)->orderByDesc('activity_date')->paginate(10, ['*'], 'logs_page')->withQueryString(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->orderByDesc('attendance_date')->paginate(10, ['*'], 'attendance_page')->withQueryString(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
+        return view('management.records', ['suggestions' => $suggestions, 'logs' => DB::table('daily_logs')->whereIn('user_id', $ids)->orderByDesc('activity_date')->paginate(10, ['*'], 'logs_page')->withQueryString(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->orderByDesc('attendance_date')->paginate(10, ['*'], 'attendance_page')->withQueryString(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
     }
 
     public function saveLog(Request $r): RedirectResponse
@@ -305,6 +361,8 @@ class WorkspaceController extends Controller
         }
         DB::table('daily_logs')->updateOrInsert(['user_id' => $r->user()->id, 'activity_date' => $data['activity_date']], $data + ['status' => 'pending', 'review_note' => null, 'reviewed_by' => null, 'created_at' => $old?->created_at ?? now(), 'updated_at' => now()]);
 
+        WorkspaceActivity::notify(WorkspaceActivity::reviewers($r->user()->id), $r->user()->id, 'Logbook ready for review / Logbook untuk semakan');
+
         return back()->with('success', 'Logbook saved. You can copy the summary into a hardcopy logbook. / Logbook disimpan dan boleh disalin ke buku fizikal.');
     }
 
@@ -318,6 +376,8 @@ class WorkspaceController extends Controller
         }
         $path = $r->file('photo')->store('attendance', 'local');
         DB::table('attendance_records')->insert(['user_id' => $r->user()->id, 'attendance_date' => $date, 'checked_in_at' => now(), 'photo_path' => $path, 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]);
+
+        WorkspaceActivity::notify(WorkspaceActivity::reviewers($r->user()->id), $r->user()->id, 'Attendance ready for review / Kehadiran untuk semakan');
 
         return back()->with('success', 'Attendance submitted for verification. / Kehadiran dihantar untuk pengesahan.');
     }
