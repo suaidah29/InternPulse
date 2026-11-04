@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\DashboardSummary;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +16,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('manage-internpulse', fn (User $user): bool => $user->role === 'superadmin');
+        \Illuminate\Support\Facades\View::composer('management.dashboard-visuals', function (View $view): void {
+            $view->with(DashboardSummary::forUser(auth()->user()));
+        });
         \Illuminate\Support\Facades\View::composer('management.*', function (View $view): void {
             $view->with('t', fn (string $en, string $ms) => new HtmlString('<span data-en="'.e($en).'" data-ms="'.e($ms).'">'.e($en).'</span>'));
         });

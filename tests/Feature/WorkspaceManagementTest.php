@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\SupervisorInvitationMail;
 use App\Models\User;
+use App\Services\DashboardSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +42,27 @@ class WorkspaceManagementTest extends TestCase
         foreach (['management.people', 'management.departments', 'workspace.tasks', 'workspace.reviews', 'workspace.records', 'workspace.guides', 'management.reports', 'management.activity'] as $route) {
             $this->get(route($route))->assertOk()->assertSee('data-theme-choice="light"', false)->assertSee('data-theme-choice="dark"', false);
         }
+    }
+
+    public function test_dashboard_charts_calendar_and_search_respect_team_access(): void
+    {
+        $manager = $this->manager();
+        $sv = $this->supervisor();
+        $intern = $this->intern($sv);
+        $other = $this->intern($this->supervisor());
+        $date = now('Asia/Kuala_Lumpur')->toDateString();
+        $visible = $this->task($intern, $sv, 'Website team work');
+        $hidden = $this->task($other, $manager, 'Website confidential work');
+        DB::table('work_tasks')->whereIn('id', [$visible, $hidden])->update(['due_date' => $date]);
+        $this->actingAs($sv)->get(route('workspace.overview'))->assertOk()->assertSee('Deadline calendar')->assertSee('tiger-laptop.png');
+        $summary = DashboardSummary::forUser($sv);
+        $this->assertSame(1, (int) $summary['statuses']['todo']);
+        $this->assertSame(1, (int) $summary['calendarCounts'][$date]);
+        $this->assertSame(2, (int) DashboardSummary::forUser($manager)['statuses']['todo']);
+        $this->get(route('workspace.tasks', ['q' => 'Website', 'due_date' => $date]))->assertOk()->assertSee('Website team work')->assertDontSee('Website confidential work');
+        $this->get(route('workspace.tasks', ['q' => 'Nonmatching']))->assertOk()->assertDontSee('Website team work');
+        DB::table('work_tasks')->where('id', $visible)->update(['archived_at' => now()]);
+        $this->assertSame(0, DashboardSummary::forUser($intern)['statuses']->sum());
     }
 
     public function test_role_dashboards_show_only_the_correct_person_or_team(): void

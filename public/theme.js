@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const panel=document.createElement('div');panel.className='header-settings-panel';panel.id='header-settings-panel';
  const heading=(en,ms)=>{const label=document.createElement('p');label.dataset.en=en;label.dataset.ms=ms;label.textContent=en;return label;};
  panel.append(heading('Appearance','Paparan'),appearance,heading('Language','Bahasa'),language);
- menu.append(trigger,panel);header.insertBefore(menu,header.querySelector('.header-notifications,.account-menu,.signin,.quiet-button'));
+ menu.append(trigger,panel);header.insertBefore(menu,header.querySelector('.notification-menu,.account-menu,.signin,.quiet-button'));
  const translate=()=>menu.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[document.documentElement.lang==='ms'?'ms':'en']);
  translate();new MutationObserver(translate).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
  menu.addEventListener('toggle',()=>{trigger.setAttribute('aria-expanded',String(menu.open));if(menu.open){const account=header.querySelector('.account-menu');if(account)account.open=false;}});

@@ -178,7 +178,10 @@ class WorkspaceController extends Controller
 
     public function tasks(Request $r): View
     {
+        $r->validate(['q' => 'nullable|string|max:180', 'due_date' => 'nullable|date_format:Y-m-d']);
         $query = $this->tasksQuery($r)->when($r->query('archived') !== '1', fn ($q) => $q->whereNull('archived_at'));
+        $query->when($r->filled('q'), fn ($q) => $q->where('title', 'like', '%'.$r->query('q').'%'));
+        $query->when($r->filled('due_date'), fn ($q) => $q->where('due_date', $r->query('due_date')));
         if ($r->filled('task')) {
             $query->where('id', (int) $r->query('task'));
         }
