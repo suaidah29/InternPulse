@@ -1,5 +1,25 @@
 (()=>{let theme='light';try{theme=localStorage.getItem('internpulse-theme')==='dark'?'dark':'light'}catch{}document.documentElement.dataset.theme=theme;document.addEventListener('DOMContentLoaded',()=>{const apply=()=>document.querySelectorAll('[data-theme-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeChoice===document.documentElement.dataset.theme)));document.querySelectorAll('[data-theme-choice]').forEach(b=>b.onclick=()=>{document.documentElement.dataset.theme=b.dataset.themeChoice;try{localStorage.setItem('internpulse-theme',b.dataset.themeChoice)}catch{}apply()});apply();});})();
 document.addEventListener('DOMContentLoaded',()=>{
+ const header=document.querySelector('header');
+ const appearance=header?.querySelector('.theme-switch');
+ const language=header?.querySelector('.language-switch');
+ if(!appearance||!language)return;
+ const menu=document.createElement('details');menu.className='header-settings';
+ const trigger=document.createElement('summary');
+ trigger.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m9 3-.7 2.2-2 .9L4 5.7 2 9l1.7 1.8v2.4L2 15l2 3.3 2.3-.4 2 .9L9 21h6l.7-2.2 2-.9 2.3.4 2-3.3-1.7-1.8v-2.4L22 9l-2-3.3-2.3.4-2-.9L15 3Z"/><circle cx="12" cy="12" r="3"/></svg><span data-en="Settings" data-ms="Tetapan">Settings</span>';
+ trigger.setAttribute('aria-controls','header-settings-panel');trigger.setAttribute('aria-expanded','false');
+ const panel=document.createElement('div');panel.className='header-settings-panel';panel.id='header-settings-panel';
+ const heading=(en,ms)=>{const label=document.createElement('p');label.dataset.en=en;label.dataset.ms=ms;label.textContent=en;return label;};
+ panel.append(heading('Appearance','Paparan'),appearance,heading('Language','Bahasa'),language);
+ menu.append(trigger,panel);header.insertBefore(menu,header.querySelector('.header-notifications,.account-menu,.signin,.quiet-button'));
+ const translate=()=>menu.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[document.documentElement.lang==='ms'?'ms':'en']);
+ translate();new MutationObserver(translate).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ menu.addEventListener('toggle',()=>{trigger.setAttribute('aria-expanded',String(menu.open));if(menu.open){const account=header.querySelector('.account-menu');if(account)account.open=false;}});
+ document.addEventListener('click',event=>{if(!menu.contains(event.target))menu.open=false;});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){menu.open=false;trigger.focus();}});
+ menu.addEventListener('focusout',()=>setTimeout(()=>{if(!menu.contains(document.activeElement))menu.open=false;},0));
+});
+document.addEventListener('DOMContentLoaded',()=>{
  const menu=document.querySelector('.sidebar-disclosure');
  if(menu){const mobile=matchMedia('(max-width:760px)');const sync=()=>{menu.open=!mobile.matches};sync();mobile.addEventListener('change',sync);}
  const translateTheme=()=>{const lang=document.documentElement.lang==='ms'?'ms':'en';document.querySelectorAll('[data-theme-choice][data-en]').forEach(b=>b.textContent=b.dataset[lang]);};

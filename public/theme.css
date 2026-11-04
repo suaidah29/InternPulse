@@ -89,6 +89,24 @@
 @media(max-width:760px){.public-theme:not(.login-page) .hero{padding-top:32px;padding-bottom:18px}.public-theme:not(.login-page) .stats{gap:12px;padding-top:10px}.public-theme:not(.login-page) .stats strong{font-size:11px;letter-spacing:.06em}.public-theme:not(.login-page) .stats small{font-size:10px}.public-theme:not(.login-page) .stats>div>i{font-size:14px}}
 @media(max-height:600px){.public-theme:not(.login-page) .hero{padding:32px 0}}
 /* Landing hero sits lower; sign-in remains in the header. */
+header:has(.header-settings){position:relative;z-index:20;overflow:visible}
+header .header-settings{position:relative;margin-left:auto;flex-shrink:0;color:var(--ink,#252528);font-family:Inter,"Segoe UI",sans-serif}
+header .header-settings summary,header .header-notifications{display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 14px;border:1px solid var(--line,#ffffff55);border-radius:14px;background:var(--soft,#ffffff20);color:var(--ink,#252528);font-size:13px;font-weight:500;line-height:1.3;cursor:pointer;text-decoration:none;list-style:none}
+header .header-settings summary::-webkit-details-marker{display:none}
+header .header-settings summary svg,header .header-notifications svg{width:19px;height:19px;flex-shrink:0}
+header .header-settings summary:hover,header .header-notifications:hover{background:var(--surface,#ffffff35)}
+header .header-settings summary:focus-visible,header .header-notifications:focus-visible{outline:2px solid var(--accent,#db1232);outline-offset:3px}
+header .header-settings-panel{position:absolute;top:calc(100% + 12px);right:0;z-index:30;width:240px;max-width:calc(100vw - 32px);padding:18px;border:1px solid var(--line,#ffffff55);border-radius:20px;background:rgba(250,250,252,.97);box-shadow:0 16px 45px #15152126;backdrop-filter:blur(24px);text-align:left}
+:root[data-theme=dark] header .header-settings-panel{background:rgba(32,30,36,.97)}
+header .header-settings-panel p{margin:0 0 9px;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--secondary,#6c6972)}
+header .header-settings-panel .theme-switch,header .header-settings-panel .language-switch{display:flex!important;margin:0!important;width:100%;height:40px;min-height:40px;padding:3px;gap:3px;justify-content:stretch;box-sizing:border-box}
+header .header-settings-panel .theme-switch{margin-bottom:18px!important}
+header .header-settings-panel button{flex:1;min-width:0;height:32px!important;min-height:0!important;padding:5px 10px!important;font-size:12px!important}
+header .header-settings-panel .language-switch>span{display:none}
+header .header-notifications{position:relative;flex-shrink:0;width:42px;padding:10px}
+.notification-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:20px;background:#dd1232;color:#fff;font:600 10px/18px Inter,sans-serif;text-align:center;border:2px solid var(--surface,#fff);box-sizing:content-box}
+@media(max-width:600px){header .header-settings summary{width:42px;padding:10px}header .header-settings summary>span{display:none}header .header-settings-panel{position:fixed;top:auto;right:16px;margin-top:12px}.management-page header{gap:8px}.management-page header .header-context{display:none}}
+@media print{.header-settings,.header-notifications{display:none!important}}
 .public-theme:not(.login-page) .hero{padding-top:clamp(100px,20vh,220px);padding-bottom:12px}
 @media(max-width:760px){.public-theme:not(.login-page) .hero{padding-top:clamp(65px,13vh,110px);padding-bottom:12px}}
 @media(max-height:600px){.public-theme:not(.login-page) .hero{padding-top:65px;padding-bottom:28px}}
