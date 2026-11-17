@@ -3,7 +3,7 @@
 @section('content')
 <a class="template-link" href="{{ route('workspace.tasks') }}">← {{ $t('All tasks','Semua tugasan') }}</a>
 @include('management.notices')
-<section class="glass section-card"><div class="record-heading"><div><p class="record-meta">#{{ $task->id }} · {{ $task->department ?: '—' }}</p><h1>{{ $task->title }}</h1><p>{{ $owner->name }} · {{ $task->due_date ?: $t('No deadline','Tiada tarikh akhir') }}</p></div><span class="badge neutral">{{ str_replace('_',' ',$task->status) }}</span></div><p class="read-text">{{ $task->description }}</p>
+<section class="glass section-card"><div class="record-heading"><div><p class="record-meta">#{{ $task->id }} · {{ $task->department ?: '—' }}</p><h1>{{ $task->title }}</h1><p>{{ $owner->name }} · {{ $task->due_date ?: $t('No deadline','Tiada tarikh akhir') }}</p></div><span class="badge neutral">{{ $t(...\App\Services\TaskStatus::label($task->status)) }}</span></div><p class="read-text">{{ $task->description }}</p>
 @if($task->progress_note)<h2>{{ $t('Latest progress','Kemajuan terkini') }}</h2><p class="read-text">{{ $task->progress_note }}</p>@endif
 @if($task->work_url)<a class="quiet-button" href="{{ $task->work_url }}" target="_blank" rel="noopener noreferrer">{{ $t('View work','Lihat hasil kerja') }} ↗</a>@endif
 <div class="attachment-list">@foreach($files as $file)<a href="{{ route('workspace.files',['type'=>'task','id'=>$file->id]) }}" target="_blank" rel="noopener" data-file-preview>{{ $t('View','Lihat') }}: {{ $file->original_name }}</a>@endforeach</div>
@@ -13,6 +13,6 @@
 @include('management.task-blockers')
 <section class="glass section-card"><h2>{{ $t('Conversation & history','Perbincangan & sejarah') }}</h2>
 @unless($task->archived_at)<form method="post" action="{{ route('workspace.tasks.comment',$task->id) }}">@csrf<label>{{ $t('Add a comment','Tambah komen') }}<textarea name="comment" required maxlength="4000"></textarea></label><button class="primary-button">{{ $t('Post comment','Hantar komen') }}</button></form>@endunless
-@forelse($history as $event)<article class="record-card"><strong>{{ $event->name }}</strong><p class="record-meta">{{ str_replace('_',' ',$event->kind) }} · {{ \Carbon\Carbon::parse($event->created_at)->timezone('Asia/Kuala_Lumpur')->format('d M Y, H:i') }} MYT</p><p class="read-text">{{ $event->body }}</p></article>@empty<p class="muted">{{ $t('No updates yet. New activity will appear here.','Belum ada kemas kini. Aktiviti baharu akan dipaparkan di sini.') }}</p>@endforelse
+@forelse($history as $event)<article class="record-card"><strong>{{ $event->name }}</strong><p class="record-meta">{{ $t(...\App\Services\TaskStatus::kindLabel($event->kind)) }} · {{ \Carbon\Carbon::parse($event->created_at)->timezone('Asia/Kuala_Lumpur')->format('d M Y, H:i') }} MYT</p><p class="read-text">{{ $event->body }}</p></article>@empty<p class="muted">{{ $t('No updates yet. New activity will appear here.','Belum ada kemas kini. Aktiviti baharu akan dipaparkan di sini.') }}</p>@endforelse
 <div class="pager">@if($history->previousPageUrl())<a href="{{ $history->previousPageUrl() }}">← {{ $t('Previous','Sebelumnya') }}</a>@endif<span>{{ $history->currentPage() }} / {{ $history->lastPage() }}</span>@if($history->nextPageUrl())<a href="{{ $history->nextPageUrl() }}">{{ $t('Next','Seterusnya') }} →</a>@endif</div></section>
 @endsection

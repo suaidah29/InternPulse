@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\SupervisorInvitations;
 use App\Services\DocumentPreview;
+use App\Services\TaskStatus;
 use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
@@ -318,7 +319,7 @@ class WorkspaceController extends Controller
             DB::table('work_files')->insert(['task_id' => $id, 'uploaded_by' => $r->user()->id, 'path' => $path, 'original_name' => $r->file('evidence')->getClientOriginalName(), 'created_at' => now(), 'updated_at' => now()]);
         }
         $this->audit($r, 'task.progress', $task->title);
-        WorkspaceActivity::record($task, $r->user()->id, 'progress', $data['status'].' · '.($data['progress_note'] ?? ''));
+        WorkspaceActivity::record($task, $r->user()->id, 'progress', TaskStatus::english($data['status']).' · '.($data['progress_note'] ?? ''));
 
         return back()->with('success', 'Progress saved. / Kemajuan disimpan.');
     }

@@ -189,10 +189,11 @@ class WorkspaceManagementTest extends TestCase
         $log = DB::table('daily_logs')->first();
         $attendance = DB::table('attendance_records')->first();
         $this->assertStringContainsString('Created login screen.', $log->summary);
-        $this->actingAs($other)->post(route('workspace.review', ['type' => 'log', 'id' => $log->id]), ['decision' => 'approved'])->assertForbidden();
-        $this->actingAs($manager)->post(route('workspace.review', ['type' => 'log', 'id' => $log->id]), ['decision' => 'approved', 'note' => 'Good progress'])->assertRedirect();
+        $this->actingAs($other)->post(route('workspace.review', ['type' => 'attendance', 'id' => $attendance->id]), ['decision' => 'approved'])->assertForbidden();
+        $this->actingAs($manager)->post(route('workspace.review', ['type' => 'log', 'id' => $log->id]), ['decision' => 'approved'])->assertNotFound();
         $this->post(route('workspace.review', ['type' => 'attendance', 'id' => $attendance->id]), ['decision' => 'approved', 'note' => 'Verified'])->assertRedirect();
-        $this->actingAs($intern)->post(route('workspace.logbook.store'), ['activity_date' => $today, 'points' => 'Change approved log', 'summary' => ''])->assertSessionHasErrors('activity_date');
+        $this->actingAs($intern)->post(route('workspace.logbook.store'), ['activity_date' => $today, 'points' => 'Change approved log', 'summary' => ''])->assertRedirect();
+        $this->assertSame('Change approved log', DB::table('daily_logs')->where('id', $log->id)->value('points'));
         $this->post(route('workspace.attendance.store'), ['photo' => UploadedFile::fake()->image('again.jpg')])->assertSessionHasErrors('photo');
     }
 
@@ -234,8 +235,7 @@ class WorkspaceManagementTest extends TestCase
         $this->actingAs($intern)->post(route('workspace.logbook.store'), ['activity_date' => now('Asia/Kuala_Lumpur')->toDateString(), 'points' => 'Finished the page design'])->assertRedirect();
         $log = DB::table('daily_logs')->first();
         $this->assertNotNull($log);
-        $this->actingAs($sv)->post(route('workspace.review', ['type' => 'log', 'id' => $log->id]), ['decision' => 'approved'])->assertRedirect();
-        $this->assertDatabaseHas('daily_logs', ['id' => $log->id, 'status' => 'approved']);
+        $this->assertStringContainsString('Finished the page design', $log->summary);
     }
 
     public function test_supervisor_cannot_approve_own_due_request(): void

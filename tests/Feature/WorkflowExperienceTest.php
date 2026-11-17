@@ -24,7 +24,7 @@ class WorkflowExperienceTest extends TestCase
         $this->actingAs($intern)->get(route('workspace.tasks.show', $id))->assertOk()->assertSee('Update progress');
         $this->get(route('workspace.notifications'))->assertOk()->assertSee('Workflow example');
         $this->post(route('workspace.tasks.progress', $id), ['status' => 'review', 'progress_note' => 'Ready for your feedback'])->assertRedirect();
-        $this->get(route('workspace.records'))->assertOk()->assertSee('data-log-suggestion="Workflow example"', false);
+        $this->get(route('workspace.logbook'))->assertOk()->assertSee('data-log-suggestion="Workflow example"', false);
         $this->post(route('workspace.tasks.decision', $id), ['decision' => 'completed', 'comment' => 'Self approval'])->assertForbidden();
         $this->actingAs($outsider)->get(route('workspace.tasks.show', $id))->assertNotFound();
         $this->post(route('workspace.tasks.comment', $id), ['comment' => 'Not allowed'])->assertNotFound();
