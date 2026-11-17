@@ -1,0 +1,7 @@
+.file-preview-dialog{width:min(1100px,94vw);max-width:none;height:min(88dvh,900px);max-height:none;padding:0;border:1px solid var(--line);border-radius:18px;background:var(--surface-strong);color:var(--ink);box-shadow:0 20px 80px #0008}
+.file-preview-dialog::backdrop{background:#000a}
+.file-preview-dialog[open]{display:flex;flex-direction:column}
+.file-preview-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.file-preview-actions{display:flex;gap:8px;align-items:center}
+.file-preview-frame{width:100%;flex:1;min-height:0;border:0;background:#fff}
+@media(max-width:600px){.file-preview-dialog{width:96vw;height:90dvh}.file-preview-header{padding:8px}.file-preview-actions{gap:4px}}

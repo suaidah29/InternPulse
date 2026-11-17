@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SignatureBackgroundRemover;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,32 +15,53 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('management.profile', ['person' => $request->user()]);
+        $person = $request->user();
+        $supervisor = $person->role === 'intern' ? \App\Models\User::find($person->supervisor_id)?->name : null;
+
+        return view('management.profile', compact('person', 'supervisor'));
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, SignatureBackgroundRemover $signatureBackgroundRemover): RedirectResponse
     {
         $user = $request->user();
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users')->ignore($user->id)],
             'current_password' => $request->input('email') !== $user->email ? 'required|current_password' : 'nullable',
             'photo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
             'signature' => [$user->role === 'intern' ? 'prohibited' : 'nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'university' => [$user->role === 'intern' ? 'nullable' : 'prohibited', 'string', 'max:255'],
+            'course' => [$user->role === 'intern' ? 'nullable' : 'prohibited', 'string', 'max:255'],
         ]);
+        if ($validator->fails()) {
+            return to_route('profile.edit')->withErrors($validator)->withInput($request->except(['current_password', 'photo', 'signature']));
+        }
+        $data = $validator->validated();
         $user->name = $data['name'];
         if ($user->email !== $data['email']) {
             $user->email_verified_at = null;
         }
         $user->email = $data['email'];
-        foreach (['photo', 'signature'] as $kind) {
-            if ($request->hasFile($kind)) {
-                $user->{$kind.'_path'} = $request->file($kind)->store('profiles/'.$user->id, 'local');
+        if ($user->role === 'intern') {
+            foreach (['university', 'course'] as $field) {
+                if (array_key_exists($field, $data)) {
+                    $user->{$field} = $data[$field];
+                }
             }
+        }
+        if ($request->hasFile('signature')) {
+            try {
+                $user->signature_path = $signatureBackgroundRemover->store($request->file('signature'), $user->id);
+            } catch (\Illuminate\Validation\ValidationException $error) {
+                return to_route('profile.edit')->withErrors($error->errors())->withInput($request->except(['current_password', 'photo', 'signature']));
+            }
+        }
+        if ($request->hasFile('photo')) {
+            $user->photo_path = $request->file('photo')->store('profiles/'.$user->id, 'local');
         }
         $user->save();
 
-        return back()->with('success', 'Profile updated. / Profil dikemas kini.');
+        return to_route('profile.edit')->with('success', 'Profile updated. / Profil dikemas kini.');
     }
 
     public function image(Request $request, string $kind): Response

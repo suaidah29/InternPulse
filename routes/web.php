@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\LogbookController;
+use App\Http\Controllers\InternSupportController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\PasswordRecoveryController;
 use App\Http\Controllers\ProfileController;
@@ -63,6 +65,10 @@ Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->na
     Route::post('/notifications/read', [WorkspaceController::class, 'readNotifications'])->name('notifications.read');
     Route::get('/tasks/{id}', [WorkspaceController::class, 'taskDetail'])->whereNumber('id')->name('tasks.show');
     Route::post('/tasks/{id}/comments', [WorkspaceController::class, 'comment'])->middleware('throttle:30,1')->name('tasks.comment');
+    Route::post('/tasks/{id}/blockers', [InternSupportController::class, 'createBlocker'])->whereNumber('id')->name('tasks.blockers.store');
+    Route::post('/blockers/{id}/resolve', [InternSupportController::class, 'resolveBlocker'])->whereNumber('id')->name('blockers.resolve');
+    Route::get('/evaluations/{id}', [InternSupportController::class, 'showEvaluations'])->whereNumber('id')->name('evaluations.show');
+    Route::post('/evaluations/{id}', [InternSupportController::class, 'evaluation'])->whereNumber('id')->name('evaluations.save');
     Route::post('/tasks/{id}/decision', [WorkspaceController::class, 'decideTask'])->name('tasks.decision');
     Route::get('/overview', [WorkspaceController::class, 'overview'])->name('overview');
     Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
@@ -81,7 +87,15 @@ Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->na
     Route::get('/reviews', [WorkspaceController::class, 'reviews'])->name('reviews');
     Route::post('/reviews/{type}/{id}', [WorkspaceController::class, 'review'])->name('review');
     Route::get('/records', [WorkspaceController::class, 'records'])->name('records');
-    Route::post('/logbook', [WorkspaceController::class, 'saveLog'])->name('logbook.store');
+    Route::post('/logbook', [LogbookController::class, 'store'])->name('logbook.store');
+    Route::get('/logbook', [LogbookController::class, 'index'])->name('logbook');
+    Route::get('/logbook/photos/{id}', [LogbookController::class, 'photo'])->name('logbook.photo');
+    Route::post('/logbook/documents', [LogbookController::class, 'submit'])->name('logbook.submit');
+    Route::post('/logbook/documents/{id}/verify', [LogbookController::class, 'verify'])->name('logbook.verify');
+    Route::post('/logbook/documents/{id}/return', [LogbookController::class, 'returnForChanges'])->whereNumber('id')->name('logbook.return');
+    Route::post('/logbook/documents/{id}/resubmit', [LogbookController::class, 'resubmit'])->whereNumber('id')->name('logbook.resubmit');
+    Route::get('/logbook/documents/{id}/receipt', [LogbookController::class, 'receipt'])->name('logbook.receipt');
+    Route::get('/logbook/documents/{id}/{kind}', [LogbookController::class, 'file'])->name('logbook.file');
     Route::post('/attendance', [WorkspaceController::class, 'checkIn'])->middleware('throttle:6,1,attendance:')->name('attendance.store');
     Route::get('/guides', [WorkspaceController::class, 'guides'])->name('guides');
     Route::get('/files/{type}/{id}', [WorkspaceController::class, 'download'])->name('files');
@@ -89,6 +103,7 @@ Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->na
 Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse'])->prefix('management')->name('management.')->group(function () {
     Route::get('/people', [WorkspaceController::class, 'people'])->name('people');
     Route::post('/people/{id}', [WorkspaceController::class, 'updatePerson'])->name('people.update');
+    Route::post('/people/{id}/internship', [WorkspaceController::class, 'updateInternship'])->whereNumber('id')->name('people.internship');
     Route::post('/interns/invite', [WorkspaceController::class, 'inviteIntern'])->middleware('throttle:20,1,intern-invite:')->name('interns.invite');
     Route::get('/departments', [WorkspaceController::class, 'departments'])->name('departments');
     Route::post('/departments', [WorkspaceController::class, 'saveDepartment'])->name('departments.store');
@@ -101,3 +116,4 @@ Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse']
     Route::get('/reports/export', [WorkspaceController::class, 'export'])->name('reports.export');
     Route::get('/activity', [WorkspaceController::class, 'activity'])->name('activity');
 });
+

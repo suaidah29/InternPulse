@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\SupervisorInvitations;
+use App\Services\DocumentPreview;
 use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
@@ -30,9 +31,15 @@ class WorkspaceController extends Controller
             'review' => (clone $base)->where('status', 'review')->count(),
             'completed' => (clone $base)->where('status', 'completed')->count(),
         ];
-        $tasks = (clone $base)->where('status', '!=', 'completed')->orderByRaw('due_date IS NULL')->orderBy('due_date')->orderByDesc('id')->limit(6)->get();
+        $tasks = (clone $base)->where('status', '!=', 'completed')->orderByRaw("CASE WHEN priority = 'urgent' THEN 0 ELSE 1 END")->orderByRaw('due_date IS NULL')->orderBy('due_date')->orderByDesc('id')->limit(6)->get();
         $names = DB::table('users')->whereIn('id', $ids)->pluck('name', 'id');
-        $pendingLogs = DB::table('daily_logs')->whereIn('user_id', $ids)->where('status', 'pending')->count();
+        $openBlockers = DB::table('task_blockers as b')->join('work_tasks as t', 't.id', '=', 'b.task_id')->whereIn('t.assigned_to', $ids)->whereColumn('t.assigned_to', 'b.intern_id')->whereNull('t.archived_at')->where('t.status', '!=', 'completed')->where('b.status', 'open')->select('b.*', 't.title')->orderByDesc('b.id')->limit(10)->get();
+        $unreadCount = DB::table('workspace_notifications')->where('user_id', $r->user()->id)->whereNull('read_at')->count();
+        $returnedDocuments = $supervising ? 0 : DB::table('logbook_documents as d')->where('d.user_id', $r->user()->id)->where('d.status', 'returned')->whereNotExists(fn ($q) => $q->selectRaw('1')->from('logbook_documents as next')->whereColumn('next.previous_document_id', 'd.id'))->count();
+        $latestFeedback = $supervising ? collect() : DB::table('task_activity as a')->join('work_tasks as t', 't.id', '=', 'a.task_id')->where('t.assigned_to', $r->user()->id)->whereNull('t.archived_at')->where('a.kind', 'changes_requested')->where('t.status', 'in_progress')->select('t.id', 't.title', 'a.body', 'a.created_at')->orderByDesc('a.id')->limit(5)->get();
+        $hasFinalEvaluation = ! $supervising && DB::table('intern_evaluations')->where('intern_id', $r->user()->id)->where('period', 'final')->exists();
+        $showFinishChecklist = ! $supervising && $r->user()->internship_end_date && $r->user()->internship_end_date <= now('Asia/Kuala_Lumpur')->addDays(30)->toDateString();
+        $pendingLogs = DB::table('logbook_documents')->where('supervisor_id', $r->user()->id)->whereIn('user_id', $ids)->where('status', 'pending')->count();
         $pendingAttendance = DB::table('attendance_records')->whereIn('user_id', $ids)->where('status', 'pending')->count();
         $pendingDue = DB::table('due_date_requests')->whereIn('requested_by', $ids)->where('status', 'pending')->count();
         $log = DB::table('daily_logs')->where('user_id', $r->user()->id)->where('activity_date', $today)->first();
@@ -40,7 +47,7 @@ class WorkspaceController extends Controller
         $supervisor = DB::table('users')->where('id', $r->user()->supervisor_id)->first();
         $workload = DB::table('users as u')->leftJoinSub((clone $base)->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to'), 'w', 'w.assigned_to', '=', 'u.id')->whereIn('u.id', $ids)->select('u.name', 'u.id', 'u.is_active', DB::raw('COALESCE(w.total, 0) as total'))->orderByDesc('total')->orderBy('u.name')->paginate(10)->withQueryString();
 
-        return view('management.role-dashboard', compact('supervising', 'counts', 'tasks', 'names', 'pendingLogs', 'pendingAttendance', 'pendingDue', 'log', 'attendance', 'supervisor', 'workload', 'today'));
+        return view('management.role-dashboard', compact('supervising', 'counts', 'tasks', 'names', 'pendingLogs', 'pendingAttendance', 'pendingDue', 'log', 'attendance', 'supervisor', 'workload', 'today', 'openBlockers', 'unreadCount', 'returnedDocuments', 'latestFeedback', 'hasFinalEvaluation', 'showFinishChecklist'));
     }
 
     private function audit(Request $r, string $action, string $subject): void
@@ -113,6 +120,13 @@ class WorkspaceController extends Controller
         }
         DB::transaction(function () use ($r, $id, $data, $person): void {
             DB::table('users')->where('id', $id)->update($data + ['updated_at' => now()]);
+            if ($person->role === 'intern' && (int) $person->supervisor_id !== (int) $data['supervisor_id']) {
+                $pendingDocuments = DB::table('logbook_documents')->where('user_id', $id)->whereIn('status', ['pending', 'returned']);
+                if ((clone $pendingDocuments)->exists()) {
+                    $pendingDocuments->update(['supervisor_id' => $data['supervisor_id'], 'updated_at' => now()]);
+                    WorkspaceActivity::notify([(int) $data['supervisor_id']], $r->user()->id, 'Logbook documents await review / Dokumen logbook menunggu semakan');
+                }
+            }
             if ($person->role === 'supervisor') {
                 DB::table('users')->where('supervisor_id', $id)->update(['department' => $data['department']]);
             }if (! $data['is_active']) {
@@ -121,6 +135,24 @@ class WorkspaceController extends Controller
         });
 
         return back()->with('success', 'Account updated. / Akaun dikemas kini.');
+    }
+
+    public function updateInternship(Request $r, int $id): RedirectResponse
+    {
+        $person = DB::table('users')->where('role', 'intern')->where('id', $id)->firstOrFail();
+        $data = $r->validate([
+            'university' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:255',
+            'internship_start_date' => 'nullable|date_format:Y-m-d',
+            'internship_end_date' => 'nullable|date_format:Y-m-d|after_or_equal:internship_start_date',
+            'internship_status' => ['nullable', Rule::in(['upcoming', 'ongoing', 'completed', 'withdrawn'])],
+        ]);
+        DB::transaction(function () use ($r, $id, $data, $person): void {
+            DB::table('users')->where('id', $id)->update($data + ['updated_at' => now()]);
+            $this->audit($r, 'internship.updated', $person->email);
+        });
+
+        return back()->with('success', 'Internship details updated. / Maklumat latihan industri dikemas kini.');
     }
 
     public function inviteIntern(Request $r, SupervisorInvitations $service): RedirectResponse
@@ -200,7 +232,7 @@ class WorkspaceController extends Controller
     {
         $task = $this->task($r, $id);
 
-        return view('management.task-detail', ['members' => $this->members($r), 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to'), 'canAssign' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id, 'task' => $task, 'owner' => DB::table('users')->find($task->assigned_to), 'files' => DB::table('work_files')->where('task_id', $id)->get(), 'history' => DB::table('task_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->where('a.task_id', $id)->select('a.*', 'u.name')->orderByDesc('a.id')->paginate(15), 'canReview' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id]);
+        return view('management.task-detail', ['blockers' => DB::table('task_blockers')->where('task_id', $id)->orderByDesc('id')->get(), 'members' => $this->members($r), 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to'), 'canAssign' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id, 'task' => $task, 'owner' => DB::table('users')->find($task->assigned_to), 'files' => DB::table('work_files')->where('task_id', $id)->get(), 'history' => DB::table('task_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->where('a.task_id', $id)->select('a.*', 'u.name')->orderByDesc('a.id')->paginate(15), 'canReview' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id]);
     }
 
     public function comment(Request $r, int $id): RedirectResponse
@@ -229,7 +261,7 @@ class WorkspaceController extends Controller
 
     public function notifications(Request $r): View
     {
-        return view('management.notifications', ['notifications' => DB::table('workspace_notifications')->where('user_id', $r->user()->id)->orderByDesc('id')->paginate(20), 'deadlines' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->whereNotNull('due_date')->where('due_date', '<=', now('Asia/Kuala_Lumpur')->addDays(2)->toDateString())->orderBy('due_date')->limit(20)->get()]);
+        return view('management.notifications', ['notifications' => DB::table('workspace_notifications')->where('user_id', $r->user()->id)->when($r->query('filter') === 'unread', fn ($q) => $q->whereNull('read_at'))->orderByDesc('id')->paginate(20)->withQueryString(), 'deadlines' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->whereNotNull('due_date')->where('due_date', '<=', now('Asia/Kuala_Lumpur')->addDays(2)->toDateString())->orderBy('due_date')->limit(20)->get()]);
     }
 
     public function readNotifications(Request $r): RedirectResponse
@@ -314,13 +346,13 @@ class WorkspaceController extends Controller
         $ids = $this->teamIds($r);
         $taskIds = $this->tasksQuery($r)->when($r->user()->role === 'supervisor', fn ($q) => $q->where('assigned_to', '!=', $r->user()->id))->pluck('id');
 
-        return view('management.reviews', ['requests' => DB::table('due_date_requests as d')->join('work_tasks as t', 't.id', '=', 'd.task_id')->whereIn('d.task_id', $taskIds)->where('d.status', 'pending')->select('d.*', 't.title')->get(), 'logs' => DB::table('daily_logs')->whereIn('user_id', $ids)->where('status', 'pending')->orderByDesc('activity_date')->get(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->where('status', 'pending')->orderByDesc('attendance_date')->get(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
+        return view('management.reviews', ['requests' => DB::table('due_date_requests as d')->join('work_tasks as t', 't.id', '=', 'd.task_id')->whereIn('d.task_id', $taskIds)->where('d.status', 'pending')->select('d.*', 't.title')->get(), 'logs' => DB::table('daily_logs')->whereRaw('1 = 0')->orderByDesc('activity_date')->get(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->where('status', 'pending')->orderByDesc('attendance_date')->get(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
     }
 
     public function review(Request $r, string $type, int $id): RedirectResponse
     {
         abort_if($r->user()->role === 'intern', 403);
-        $table = ['due' => 'due_date_requests', 'log' => 'daily_logs', 'attendance' => 'attendance_records'][$type] ?? null;
+        $table = ['due' => 'due_date_requests', 'attendance' => 'attendance_records'][$type] ?? null;
         abort_if(! $table, 404);
         $data = $r->validate(['decision' => ['required', Rule::in(['approved', 'rejected'])], 'note' => 'nullable|string|max:2000']);
         if ($data['decision'] === 'rejected' && ! trim($data['note'] ?? '')) {
@@ -349,24 +381,7 @@ class WorkspaceController extends Controller
         $ids = $this->teamIds($r);
         $suggestions = DB::table('task_activity as a')->join('work_tasks as t', 't.id', '=', 'a.task_id')->where('a.actor_id', $r->user()->id)->where('t.assigned_to', $r->user()->id)->where('a.kind', 'progress')->whereBetween('a.created_at', [now('Asia/Kuala_Lumpur')->startOfDay()->utc(), now('Asia/Kuala_Lumpur')->endOfDay()->utc()])->select('t.title')->distinct()->pluck('title');
 
-        return view('management.records', ['suggestions' => $suggestions, 'logs' => DB::table('daily_logs')->whereIn('user_id', $ids)->orderByDesc('activity_date')->paginate(10, ['*'], 'logs_page')->withQueryString(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->orderByDesc('attendance_date')->paginate(10, ['*'], 'attendance_page')->withQueryString(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
-    }
-
-    public function saveLog(Request $r): RedirectResponse
-    {
-        abort_unless($r->user()->role === 'intern', 403);
-        $data = $r->validate(['activity_date' => 'required|date_format:Y-m-d|before_or_equal:'.now('Asia/Kuala_Lumpur')->toDateString(), 'points' => 'required|string|max:10000', 'summary' => 'nullable|string|max:12000']);
-        $lines = array_filter(array_map('trim', preg_split('/\r?\n/', $data['points'])));
-        $data['summary'] = ($data['summary'] ?? '') ?: implode(' ', array_map(fn ($line) => rtrim(ltrim($line, '-• '), '. ').'.', $lines));
-        $old = DB::table('daily_logs')->where('user_id', $r->user()->id)->where('activity_date', $data['activity_date'])->first();
-        if ($old && $old->status === 'approved') {
-            throw ValidationException::withMessages(['activity_date' => 'An approved log cannot be edited. / Log disahkan tidak boleh diubah.']);
-        }
-        DB::table('daily_logs')->updateOrInsert(['user_id' => $r->user()->id, 'activity_date' => $data['activity_date']], $data + ['status' => 'pending', 'review_note' => null, 'reviewed_by' => null, 'created_at' => $old?->created_at ?? now(), 'updated_at' => now()]);
-
-        WorkspaceActivity::notify(WorkspaceActivity::reviewers($r->user()->id), $r->user()->id, 'Logbook ready for review / Logbook untuk semakan');
-
-        return back()->with('success', 'Logbook saved. You can copy the summary into a hardcopy logbook. / Logbook disimpan dan boleh disalin ke buku fizikal.');
+        return view('management.records', ['suggestions' => $suggestions, 'logs' => DB::table('daily_logs')->where('user_id', $r->user()->role === 'intern' ? $r->user()->id : 0)->orderByDesc('activity_date')->paginate(10, ['*'], 'logs_page')->withQueryString(), 'attendance' => DB::table('attendance_records')->whereIn('user_id', $ids)->orderByDesc('attendance_date')->paginate(10, ['*'], 'attendance_page')->withQueryString(), 'names' => DB::table('users')->whereIn('id', $ids)->pluck('name', 'id')]);
     }
 
     public function checkIn(Request $r): RedirectResponse
@@ -387,10 +402,13 @@ class WorkspaceController extends Controller
 
     public function guides(Request $r): View
     {
+        $r->validate(['q' => 'nullable|string|max:100']);
         $q = DB::table('intern_guides');
         if ($r->user()->role !== 'superadmin') {
             $q->where(fn ($q) => $q->whereNull('department')->orWhere('department', $r->user()->department));
         }
+
+        $q->when($r->filled('q'), fn ($query) => $query->where(fn ($query) => $query->where('title', 'like', '%'.$r->query('q').'%')->orWhere('body', 'like', '%'.$r->query('q').'%')));
 
         return view('management.guides', ['guides' => $q->orderByDesc('id')->get(), 'departments' => DB::table('departments')->orderBy('name')->get()]);
     }
@@ -444,7 +462,7 @@ class WorkspaceController extends Controller
             abort(404);
         }abort_unless($path && Storage::disk('local')->exists($path), 404);
 
-        return Storage::disk('local')->download($path, $name, ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store']);
+        return DocumentPreview::show($path, $name, $r->boolean('download'));
     }
 
     private function reportRows(Request $r): Collection
@@ -481,3 +499,5 @@ class WorkspaceController extends Controller
         return view('management.activity', ['activity' => DB::table('management_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->select('a.*', 'u.name as actor')->orderByDesc('a.id')->paginate(30)]);
     }
 }
+
+

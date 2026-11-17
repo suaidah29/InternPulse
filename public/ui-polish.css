@@ -1,0 +1,59 @@
+/* Shared finishing layer for all authenticated workspace pages. */
+.management-page .app-content,.management-page .workspace-content{min-width:0}
+.management-page .app-content > .section-card,.management-page .app-content > .panel{margin-bottom:20px}
+.management-page .section-card,.management-page .panel,.management-page .ui-secondary{border:1px solid var(--line);box-shadow:0 8px 28px #1712210d}
+.management-page .section-card > h1,.management-page .panel > h1{margin-bottom:16px}
+.management-page .section-card > h2,.management-page .panel > h2{margin-top:0;margin-bottom:14px}
+.management-page .section-card p,.management-page .panel p{line-height:1.65}
+.management-page .record-list{gap:12px}
+.management-page .record-list > .record-card{margin-top:0}
+.management-page .record-card{overflow-wrap:anywhere}
+.management-page .record-card + .record-card{margin-top:12px}
+.management-page .record-card h3{color:var(--ink);line-height:1.4}
+.management-page .read-text{overflow-wrap:anywhere;white-space:pre-wrap}
+.management-page .badge{display:inline-flex;align-items:center;gap:4px;min-height:25px;padding:4px 9px;border-radius:999px;line-height:1.25;white-space:normal}
+.management-page label{display:block;color:var(--ink);font-weight:600}
+.management-page label > input:not([type=checkbox]):not([type=radio]),.management-page label > select,.management-page label > textarea{display:block;margin-top:6px}
+.management-page input:not([type=checkbox]):not([type=radio]),.management-page select,.management-page textarea{max-width:100%;box-sizing:border-box}
+.management-page input[type=file]{height:auto;min-height:44px;padding:8px}
+.management-page input[type=file]::file-selector-button{margin-right:10px;padding:7px 10px;border:0;border-radius:7px;background:var(--surface-strong);color:var(--ink);cursor:pointer}
+.management-page textarea{min-height:100px}
+.management-page .form-grid{align-items:start;gap:4px 18px}
+.management-page .form-actions{display:flex;flex-wrap:wrap;gap:10px}
+.management-page .primary-button,.management-page .quiet-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;cursor:pointer;transition:filter .15s ease,background-color .15s ease}
+.management-page .primary-button:hover,.management-page .quiet-button:hover{filter:brightness(.96)}
+.management-page button:disabled{cursor:not-allowed;opacity:.55}
+.management-page .table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.management-page table{width:100%;border-collapse:collapse}
+.management-page td,.management-page th{text-align:left;vertical-align:top}
+.management-page td small{display:block;margin-top:3px}
+.management-page .pager{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;font-size:12px}
+.management-page .notice{margin:0 0 18px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;line-height:1.6}
+.management-page .empty-state{padding:22px;border:1px dashed var(--line);border-radius:12px;line-height:1.7}
+.management-page .section-card details:not(.notification-menu):not(.account-menu){margin-top:16px}
+.management-page .section-card details > summary{cursor:pointer;color:var(--accent);font-weight:600}
+.management-page .attachment-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.management-page .attachment-list a{padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--soft);overflow-wrap:anywhere}
+.management-page .search-form{gap:10px}
+.management-page .search-form input,.management-page .search-form select{min-width:0}
+.management-page .account-dropdown,.management-page .notification-panel{color:var(--ink)}
+.management-page .notification-panel{max-width:calc(100vw - 24px)}
+.management-page .welcome-banner .welcome-copy{min-width:0}
+.management-page .welcome-banner .welcome-name{overflow-wrap:anywhere}
+@media(max-width:760px){
+ .management-page .section-card,.management-page .panel{padding:18px 16px}
+ .management-page .form-grid{grid-template-columns:1fr}
+ .management-page .form-grid .wide{grid-column:auto}
+ .management-page .table-scroll table{min-width:580px}
+ .management-page .record-heading{gap:10px}
+ .management-page .pager{justify-content:center;flex-wrap:wrap}
+ .management-page .notification-panel,.management-page .account-dropdown{max-width:calc(100vw - 24px)}
+ .management-page .welcome-banner{min-height:0}
+}
+@media(max-width:420px){
+ .management-page .metric-grid{grid-template-columns:1fr 1fr}
+ .management-page .primary-button,.management-page .quiet-button{min-height:42px}
+ .management-page .notification-panel{right:-62px;width:min(340px,calc(100vw - 24px))}
+}
+@media(prefers-reduced-motion:reduce){.management-page .primary-button,.management-page .quiet-button{transition:none}}
+@media print{.management-page .section-card,.management-page .panel{box-shadow:none}}

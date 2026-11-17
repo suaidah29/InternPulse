@@ -25,7 +25,7 @@ class ManagementController extends Controller
             'overdue' => DB::table('work_tasks')->whereNull('archived_at')->where('status', '!=', 'completed')->whereDate('due_date', '<', now('Asia/Kuala_Lumpur')->toDateString())->count(),
             'review' => DB::table('work_tasks')->whereNull('archived_at')->where('status', 'review')->count(),
             'completed' => DB::table('work_tasks')->whereNull('archived_at')->where('status', 'completed')->count(),
-            'logs' => DB::table('daily_logs')->where('status', 'pending')->count(),
+            'logs' => DB::table('logbook_documents')->where('status', 'pending')->count(),
             'attendance' => DB::table('attendance_records')->where('status', 'pending')->count(),
             'due' => DB::table('due_date_requests')->where('status', 'pending')->count(),
         ];
@@ -135,3 +135,5 @@ class ManagementController extends Controller
         return to_route('management.dashboard')->with($failed ? 'warning' : 'success', "{$sent} invitations submitted; {$failed} not sent. / {$sent} jemputan dihantar; {$failed} tidak dihantar.");
     }
 }
+
+
