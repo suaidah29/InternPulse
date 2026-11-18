@@ -229,3 +229,14 @@
   .management-page .page-header-actions{width:100%;justify-content:flex-start}
   .management-page .page-header-actions .quiet-button,.management-page .page-header-actions form{flex:1 1 auto}
 }
+
+/* Search forms: management.css sets .search-form{display:flex} with no
+   align-items, so a control can stretch to the height of the tallest sibling
+   (the guides form, now handled by its own .guide-search rules, grew its
+   button that way). Line the controls up on one bottom edge instead. */
+.management-page .search-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
+.management-page .search-form>label:not(.sr-only){flex:1 1 240px;display:grid;gap:6px;min-width:0}
+.management-page .search-form input,.management-page .search-form select{flex:1 1 160px;width:auto;min-width:0;min-height:44px}
+.management-page .search-form>label:not(.sr-only) input{width:100%;flex:0 1 auto}
+.management-page .search-form>button{flex:0 0 auto;align-self:flex-end;min-height:44px}
+@media(max-width:640px){.management-page .search-form>button{width:100%}}
