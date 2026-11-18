@@ -11,7 +11,7 @@ $me = auth()->id();
 @foreach($columns as $status)
 @php($cards = $grouped[$status] ?? collect())
 <section class="kanban-col tone-{{ \App\Services\TaskStatus::tone($status) }}" data-status="{{ $status }}" aria-labelledby="kb-{{ $status }}">
-<header><h2 id="kb-{{ $status }}">{{ $t(...\App\Services\TaskStatus::label($status)) }}</h2><span class="kanban-count" data-count>{{ $cards->count() }}</span></header>
+<div class="kanban-column-heading"><h2 id="kb-{{ $status }}">{{ $t(...\App\Services\TaskStatus::label($status)) }}</h2><span class="kanban-count" data-count>{{ $cards->count() }}</span></div>
 <div class="kanban-list" data-dropzone @if($status==='completed') data-locked @endif>
 @foreach($cards as $task)
 @php($mine = $task->assigned_to === $me && $status !== 'completed')

@@ -1,4 +1,24 @@
 /* Shared finishing layer for all authenticated workspace pages. */
+.management-page .management-shell>header{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:16px;width:100%;max-width:none;min-height:76px;box-sizing:border-box;padding:14px 20px;margin:0 0 24px;position:sticky;top:8px;z-index:50;overflow:visible;border:1px solid var(--line);border-radius:18px;background:var(--surface-strong);animation:none;transform:none}
+.management-page .management-shell>header>.logo{flex:0 0 160px;width:160px;max-width:none;height:44px;margin:0;order:0}
+.management-page .management-shell>header>.header-search{order:1;flex:1 1 280px;width:auto;min-width:0;max-width:480px;height:44px;margin:0 auto;box-sizing:border-box}
+.management-page .management-shell>header>.notification-menu{order:2;margin:0;align-self:center}
+.management-page .management-shell>header>.account-menu{order:3;margin:0;align-self:center}
+.management-page .management-shell>header .header-notifications{width:44px;height:44px;min-height:44px;padding:10px;box-sizing:border-box}
+.management-page .management-shell>header .account-menu>summary{height:44px;min-height:44px;box-sizing:border-box}
+.management-page .management-shell>header .account-name{max-width:160px}
+.management-page .management-shell>header .notification-panel,.management-page .management-shell>header .account-dropdown{max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:760px){
+ .management-page .management-shell>header{gap:10px;padding:12px;margin-bottom:20px;border-radius:16px;top:8px}
+ .management-page .management-shell>header>.logo{flex-basis:130px;width:130px;margin-right:auto}
+ .management-page .management-shell>header{flex-wrap:wrap}
+ .management-page .management-shell>header>.header-search{order:4;flex:1 0 100%;max-width:none;margin:0}
+ .management-page .management-shell>header .notification-menu{position:static}
+ .management-page .management-shell>header .notification-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(360px,100%);max-width:100%;margin:0}
+ .management-page .management-shell>header .account-dropdown{top:calc(100% + 8px);max-width:calc(100vw - 48px)}
+ .management-page .management-shell>header .notification-panel,.management-page .management-shell>header .account-dropdown{max-height:calc(100dvh - 180px)}
+}
+@media print{.management-page .management-shell>header{position:static}}
 .management-page .app-content,.management-page .workspace-content{min-width:0}
 .management-page .app-content > .section-card,.management-page .app-content > .panel{margin-bottom:20px}
 .management-page .section-card,.management-page .panel,.management-page .ui-secondary{border:1px solid var(--line);box-shadow:0 8px 28px #1712210d}
@@ -35,6 +55,10 @@
 .management-page .attachment-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 .management-page .attachment-list a{padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--soft);overflow-wrap:anywhere}
 .management-page .search-form{gap:10px}
+.management-page .guide-search{display:flex;align-items:flex-end;gap:12px;width:100%;max-width:640px;margin:0 0 24px}
+.management-page .guide-search label{flex:1;min-width:0;margin:0}
+.management-page .guide-search input{display:block;width:100%;height:44px;min-height:44px;margin-top:8px;box-sizing:border-box}
+.management-page .guide-search>.quiet-button{flex:0 0 auto;align-self:flex-end;height:44px;min-height:44px;margin:0;padding:0 20px;box-sizing:border-box}
 .management-page .search-form input,.management-page .search-form select{min-width:0}
 .management-page .account-dropdown,.management-page .notification-panel{color:var(--ink)}
 .management-page .notification-panel{max-width:calc(100vw - 24px)}
@@ -140,10 +164,10 @@
 .kanban-cols{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;align-items:start;overflow-x:auto;padding-bottom:8px}
 .kanban-col{border-radius:16px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--secondary);min-width:0}
 .kanban-col.tone-info{border-top-color:var(--info-fill)}.kanban-col.tone-warn{border-top-color:var(--warn-fill)}.kanban-col.tone-ok{border-top-color:var(--ok-fill)}
-.kanban-col header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 4px}
+.kanban-column-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--line)}
 .kanban-col h2{margin:0;font-size:15px}
 .kanban-count{min-width:26px;text-align:center;padding:2px 8px;border-radius:99px;font-size:13px;font-weight:600;background:var(--soft);color:var(--secondary)}
-.kanban-list{display:grid;gap:10px;padding:10px;min-height:96px;border-radius:12px;transition:background .15s}
+.kanban-list{display:grid;align-content:start;gap:12px;padding:12px;min-height:220px;border-radius:12px;transition:background .15s}
 .kanban-list.drop-ok{background:var(--info-tint);outline:2px dashed var(--info-fill);outline-offset:-4px}
 .kanban-list.drop-no{outline:2px dashed var(--danger-fill);outline-offset:-4px;cursor:not-allowed}
 .kanban-card{padding:12px;border-radius:12px;background:var(--surface-strong);border:1px solid var(--line);border-left:4px solid transparent;display:grid;gap:6px}
@@ -158,6 +182,16 @@
 .kanban-due{color:var(--secondary)}.kanban-due.late{color:var(--danger-ink);font-weight:600}
 .kanban-move select{width:100%;min-height:36px;font-size:13px}
 .kanban-empty{margin:0;padding:12px;text-align:center;font-size:13px}
+.management-page .task-filters{padding:16px;margin-bottom:20px}
+.management-page .task-filters .form-grid{display:grid;grid-template-columns:minmax(160px,1.5fr) repeat(4,minmax(110px,1fr)) auto;gap:12px;align-items:end}
+.management-page .task-filters label{margin:0;font-size:12px;min-width:0}
+.management-page .task-filters .form-actions{margin:0;padding:0;grid-column:auto;align-self:end}
+.management-page .task-filters input,.management-page .task-filters select{min-height:42px;height:42px;font-size:12px;padding:8px 10px}
+.management-page .kanban-cols{align-items:stretch;scrollbar-width:thin}
+.management-page .kanban-move{margin:6px 0 0}
+.view-toggle{flex-shrink:0;white-space:nowrap}
+@media(max-width:1200px){.management-page .task-filters .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.management-page .task-filters .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.management-page .task-filters .form-actions .quiet-button{width:100%}}
 @media(max-width:760px){.kanban-cols{grid-template-columns:repeat(4,78vw);scroll-snap-type:x mandatory}.kanban-col{scroll-snap-align:start}}
 @media (prefers-reduced-motion:reduce){.kanban-list{transition:none}}
 
