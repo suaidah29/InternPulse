@@ -28,6 +28,28 @@ final class TaskStatus
         'help_resolved' => ['Help resolved', 'Bantuan diselesaikan'],
     ];
 
+    /**
+     * Semantic tone for a badge or bar. Colour carries meaning, never brand:
+     * neutral = not started, info = underway, warn = waiting on someone,
+     * ok = done, danger = needs action now.
+     */
+    public const TONES = [
+        'todo' => 'neutral',
+        'in_progress' => 'info',
+        'review' => 'warn',
+        'completed' => 'ok',
+    ];
+
+    public static function tone(?string $status): string
+    {
+        return self::TONES[$status ?? ''] ?? 'neutral';
+    }
+
+    public static function priorityTone(?string $priority): string
+    {
+        return $priority === 'urgent' ? 'danger' : 'neutral';
+    }
+
     /** @return array{0:string,1:string} */
     public static function label(?string $status): array
     {

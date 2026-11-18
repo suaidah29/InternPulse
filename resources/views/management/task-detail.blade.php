@@ -3,7 +3,7 @@
 @section('content')
 <a class="template-link" href="{{ route('workspace.tasks') }}">← {{ $t('All tasks','Semua tugasan') }}</a>
 @include('management.notices')
-<section class="glass section-card"><div class="record-heading"><div><p class="record-meta">#{{ $task->id }} · {{ $task->department ?: '—' }}</p><h1>{{ $task->title }}</h1><p>{{ $owner->name }} · {{ $task->due_date ?: $t('No deadline','Tiada tarikh akhir') }}</p></div><span class="badge neutral">{{ $t(...\App\Services\TaskStatus::label($task->status)) }}</span></div><p class="read-text">{{ $task->description }}</p>
+<section class="glass section-card"><div class="record-heading"><div><p class="record-meta">#{{ $task->id }} · {{ $task->department ?: '—' }}</p><h1>{{ $task->title }}</h1><p>{{ $owner->name }} · {{ $task->due_date ?: $t('No deadline','Tiada tarikh akhir') }}</p></div><span class="badge {{ \App\Services\TaskStatus::tone($task->status) }}">{{ $t(...\App\Services\TaskStatus::label($task->status)) }}</span></div><p class="read-text">{{ $task->description }}</p>
 @if($task->progress_note)<h2>{{ $t('Latest progress','Kemajuan terkini') }}</h2><p class="read-text">{{ $task->progress_note }}</p>@endif
 @if($task->work_url)<a class="quiet-button" href="{{ $task->work_url }}" target="_blank" rel="noopener noreferrer">{{ $t('View work','Lihat hasil kerja') }} ↗</a>@endif
 <div class="attachment-list">@foreach($files as $file)<a href="{{ route('workspace.files',['type'=>'task','id'=>$file->id]) }}" target="_blank" rel="noopener" data-file-preview>{{ $t('View','Lihat') }}: {{ $file->original_name }}</a>@endforeach</div>

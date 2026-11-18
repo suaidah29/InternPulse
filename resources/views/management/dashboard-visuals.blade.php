@@ -8,7 +8,7 @@ $statusLabels = ['todo'=>['To do','Belum mula'],'in_progress'=>['In progress','S
 <section class="glass section-card task-chart"><div class="section-heading"><div><p class="eyebrow">{{ $t('PROGRESS SNAPSHOT','RINGKASAN KEMAJUAN') }}</p><h2>{{ $t('Every step counts','Setiap langkah bermakna') }}</h2></div><span class="badge neutral">{{ $total }} {{ $t('tasks','tugasan') }}</span></div>
 <div class="chart-content"><div class="completion-ring" style="--progress:{{ $percent }}%"><div><strong>{{ $percent }}%</strong><span>{{ $t('completed','selesai') }}</span></div></div><div class="chart-bars">
 @foreach($statusLabels as $status=>$label)
-<a href="{{ route('workspace.tasks',['status'=>$status]) }}"><div><span>{{ $t(...$label) }}</span><strong>{{ $statuses[$status] ?? 0 }}</strong></div><div class="bar-track"><span style="width:{{ $total ? (($statuses[$status]??0)/$total*100) : 0 }}%"></span></div></a>
+<a href="{{ route('workspace.tasks',['status'=>$status]) }}"><div><span>{{ $t(...$label) }}</span><strong>{{ $statuses[$status] ?? 0 }}</strong></div><div class="bar-track"><span class="tone-{{ \App\Services\TaskStatus::tone($status) }}" style="width:{{ $total ? (($statuses[$status]??0)/$total*100) : 0 }}%"></span></div></a>
 @endforeach
 </div></div><p class="chart-caption">{{ $total ? $t('Current tasks only · archived work excluded','Tugasan semasa sahaja · arkib tidak termasuk') : $t('No tasks yet. Your progress will appear here.','Belum ada tugasan. Kemajuan akan dipaparkan di sini.') }}</p></section>
 <section class="glass section-card deadline-calendar"><div class="section-heading"><div><p class="eyebrow">{{ $t('PLAN AHEAD','RANCANG AWAL') }}</p><h2>{{ $t('Deadline calendar','Kalendar tarikh akhir') }}</h2></div></div>
