@@ -64,3 +64,67 @@
 .skip-link:focus,.skip-link:focus-visible{top:12px;outline:2px solid #fff;outline-offset:2px}
 .page-heading h2{font-size:clamp(23px,2.5vw,32px);letter-spacing:-.04em;line-height:1.2;margin:8px 0 12px;font-weight:700}
 @media (max-width:760px){.page-heading h2{font-size:25px}}
+
+/* ------------------------------------------------------------------
+   Semantic status tokens
+   Brand red (--accent) is for primary actions and identity only.
+   Status colour carries meaning: neutral / info / warn / ok / danger.
+   *-ink = text on a tinted badge (>= 6:1), *-fill = bars and dots (>= 3:1).
+   ------------------------------------------------------------------ */
+:root{--ok-ink:#1b6b4f;--warn-ink:#7a4f06;--danger-ink:#a8201a;--info-ink:#1c5496;--ok-fill:#2e9e76;--warn-fill:#b9770e;--danger-fill:#d83b3b;--info-fill:#3b7bd8;--ok-tint:#2e9e7618;--warn-tint:#b9770e18;--danger-tint:#d83b3b16;--info-tint:#3b7bd816}
+:root[data-theme=dark]{--ok-ink:#8fe0bf;--warn-ink:#f5cf86;--danger-ink:#ff9c9c;--info-ink:#9ccbff;--ok-fill:#4fc79b;--warn-fill:#e8b04a;--danger-fill:#ff6b6b;--info-fill:#6aa5f5;--ok-tint:#4fc79b1f;--warn-tint:#e8b04a1f;--danger-tint:#ff6b6b24;--info-tint:#6aa5f524}
+.management-page .badge.ok,.management-page .badge.green{color:var(--ok-ink);background:var(--ok-tint);border-color:color-mix(in srgb,var(--ok-fill) 35%,transparent)}
+.management-page .badge.warn,.management-page .badge.amber{color:var(--warn-ink);background:var(--warn-tint);border-color:color-mix(in srgb,var(--warn-fill) 35%,transparent)}
+.management-page .badge.danger{color:var(--danger-ink);background:var(--danger-tint);border-color:color-mix(in srgb,var(--danger-fill) 35%,transparent)}
+.management-page .badge.info{color:var(--info-ink);background:var(--info-tint);border-color:color-mix(in srgb,var(--info-fill) 35%,transparent)}
+.management-page .danger:not(.badge){color:var(--danger-ink);font-weight:600}
+/* metric cards: a coloured top edge says what the number means */
+.management-page .metric{border-top:3px solid transparent}
+.management-page .metric.tone-info{border-top-color:var(--info-fill)}
+.management-page .metric.tone-warn{border-top-color:var(--warn-fill)}
+.management-page .metric.tone-ok{border-top-color:var(--ok-fill)}
+.management-page .metric.tone-danger{border-top-color:var(--danger-fill)}
+.management-page .metric.tone-danger strong{color:var(--danger-ink)}
+/* progress snapshot: bars take the status colour, ring means "done" */
+.management-page .bar-track span.tone-neutral{background:var(--secondary)}
+.management-page .bar-track span.tone-info{background:var(--info-fill)}
+.management-page .bar-track span.tone-warn{background:var(--warn-fill)}
+.management-page .bar-track span.tone-ok{background:var(--ok-fill)}
+.management-page .completion-ring{background:conic-gradient(var(--ok-fill) var(--progress),var(--line) 0)}
+
+/* ------------------------------------------------------------------
+   Intern insights: internship timeline + logbook streak
+   ------------------------------------------------------------------ */
+.intern-insights{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-bottom:24px}
+.intern-insights .section-card{margin:0;padding:24px}
+.insight-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.insight-head h2{margin:2px 0 0}
+.insight-figure{font:700 34px/1 Manrope,Inter,sans-serif;letter-spacing:-.05em;margin:0;white-space:nowrap}
+.insight-figure small{font:500 13px/1.2 Inter,sans-serif;letter-spacing:0;color:var(--secondary);margin-left:4px}
+.timeline-track{--weeks:12;position:relative;height:14px;border-radius:99px;background:var(--line);overflow:hidden}
+.timeline-track>span{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,var(--info-fill),var(--ok-fill));min-width:14px}
+.timeline-track::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(100% / var(--weeks) - 2px),var(--surface-strong) calc(100% / var(--weeks) - 2px),var(--surface-strong) calc(100% / var(--weeks)))}
+.timeline-ends{display:flex;justify-content:space-between;gap:12px;margin:10px 0 0;font-size:13px;color:var(--secondary)}
+.timeline-ends strong{color:inherit;font-weight:600}
+.timeline-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 0}
+.timeline-stats div{padding:10px 12px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.timeline-stats strong{display:block;font:700 20px/1.2 Manrope,Inter,sans-serif}
+.timeline-stats span{font-size:13px;color:var(--secondary)}
+.insight-note{margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--secondary)}
+.heatmap{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.heatmap-col{display:grid;grid-template-rows:repeat(7,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;min-width:10px;border-radius:4px;background:var(--line)}
+.hm-cell.logged{background:var(--ok-fill)}
+.hm-cell.missed{background:transparent;box-shadow:inset 0 0 0 2px var(--danger-fill)}
+.hm-cell.open,.hm-cell.weekend,.hm-cell.off,.hm-cell.future{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.hm-cell.off{opacity:.45}
+.hm-cell.today{outline:2px solid var(--ink);outline-offset:1px}
+.heatmap-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;font-size:13px;color:var(--secondary)}
+.heatmap-legend span{display:inline-flex;align-items:center;gap:6px}
+.heatmap-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--line)}
+.heatmap-legend i.logged{background:var(--ok-fill)}
+.heatmap-legend i.missed{background:transparent;box-shadow:inset 0 0 0 2px var(--danger-fill)}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:600;background:var(--ok-tint);color:var(--ok-ink)}
+.streak-badge.idle{background:var(--soft);color:var(--secondary)}
+@media(max-width:900px){.intern-insights{grid-template-columns:1fr}}
+@media(max-width:480px){.timeline-stats{grid-template-columns:1fr 1fr}.heatmap,.heatmap-col{gap:3px}}

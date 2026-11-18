@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\SupervisorInvitations;
 use App\Services\DocumentPreview;
+use App\Services\InternshipProgress;
+use App\Services\LogStreak;
 use App\Services\TaskStatus;
 use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
@@ -48,7 +50,10 @@ class WorkspaceController extends Controller
         $supervisor = DB::table('users')->where('id', $r->user()->supervisor_id)->first();
         $workload = DB::table('users as u')->leftJoinSub((clone $base)->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to'), 'w', 'w.assigned_to', '=', 'u.id')->whereIn('u.id', $ids)->select('u.name', 'u.id', 'u.is_active', DB::raw('COALESCE(w.total, 0) as total'))->orderByDesc('total')->orderBy('u.name')->paginate(10)->withQueryString();
 
-        return view('management.role-dashboard', compact('supervising', 'counts', 'tasks', 'names', 'pendingLogs', 'pendingAttendance', 'pendingDue', 'log', 'attendance', 'supervisor', 'workload', 'today', 'openBlockers', 'unreadCount', 'returnedDocuments', 'latestFeedback', 'hasFinalEvaluation', 'showFinishChecklist'));
+        $timeline = $supervising ? null : InternshipProgress::for($r->user());
+        $streak = $supervising ? null : LogStreak::for($r->user());
+
+        return view('management.role-dashboard', compact('timeline', 'streak', 'supervising', 'counts', 'tasks', 'names', 'pendingLogs', 'pendingAttendance', 'pendingDue', 'log', 'attendance', 'supervisor', 'workload', 'today', 'openBlockers', 'unreadCount', 'returnedDocuments', 'latestFeedback', 'hasFinalEvaluation', 'showFinishChecklist'));
     }
 
     private function audit(Request $r, string $action, string $subject): void
