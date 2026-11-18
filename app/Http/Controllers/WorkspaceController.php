@@ -228,10 +228,15 @@ class WorkspaceController extends Controller
         }if ($r->query('assignee')) {
             $query->where('assigned_to', (int) $r->query('assignee'));
         }
+        $board = $r->query('view') === 'board';
+        // The board shows every current task at once, so it never includes archived work or pages.
+        $boardTasks = $board
+            ? (clone $query)->whereNull('archived_at')->orderByRaw('due_date IS NULL')->orderBy('due_date')->orderByDesc('id')->limit(300)->get()
+            : collect();
         $tasks = $query->orderByDesc('id')->paginate(12)->withQueryString();
         $names = DB::table('users')->whereIn('id', $this->teamIds($r))->pluck('name', 'id');
 
-        return view('management.tasks', ['tasks' => $tasks, 'names' => $names, 'members' => $this->members($r), 'files' => DB::table('work_files')->whereIn('task_id', $tasks->pluck('id'))->get()->groupBy('task_id'), 'canAssign' => $r->user()->role !== 'intern', 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to')]);
+        return view('management.tasks', ['board' => $board, 'boardTasks' => $boardTasks, 'tasks' => $tasks, 'names' => $names, 'members' => $this->members($r), 'files' => DB::table('work_files')->whereIn('task_id', $tasks->pluck('id'))->get()->groupBy('task_id'), 'canAssign' => $r->user()->role !== 'intern', 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to')]);
     }
 
     public function taskDetail(Request $r, int $id): View
@@ -310,7 +315,7 @@ class WorkspaceController extends Controller
         return back()->with('success', 'Task archive updated. / Arkib tugasan dikemas kini.');
     }
 
-    public function progress(Request $r, int $id): RedirectResponse
+    public function progress(Request $r, int $id): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $task = $this->task($r, $id);
         abort_if($task->archived_at || $task->status === 'completed', 409);
@@ -325,6 +330,10 @@ class WorkspaceController extends Controller
         }
         $this->audit($r, 'task.progress', $task->title);
         WorkspaceActivity::record($task, $r->user()->id, 'progress', TaskStatus::english($data['status']).' · '.($data['progress_note'] ?? ''));
+
+        if ($r->expectsJson()) {
+            return response()->json(['status' => $data['status'], 'label' => TaskStatus::label($data['status'])]);
+        }
 
         return back()->with('success', 'Progress saved. / Kemajuan disimpan.');
     }
