@@ -24,4 +24,5 @@
 </div><p class="muted">{{ $t('Contact management to update your supervisor, department, dates or status.','Hubungi management untuk mengubah penyelia, jabatan, tarikh atau status.') }}</p>
 @endif
 <button class="primary-button">{{ $t('Save profile','Simpan profil') }}</button></form></section>
+@include('management.profile-security')
 @endsection

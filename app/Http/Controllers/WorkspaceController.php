@@ -111,6 +111,28 @@ class WorkspaceController extends Controller
         return view('management.team', ['people' => DB::table('users')->where('role', 'intern')->where('supervisor_id', $r->user()->id)->when($r->query('q'), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$r->query('q').'%')->orWhere('email', 'like', '%'.$r->query('q').'%')))->orderBy('name')->paginate(15)->withQueryString()]);
     }
 
+    /** Escape hatch for a lost phone with no recovery codes left: only a superadmin can clear it. */
+    public function resetTwoFactor(Request $r, int $id): RedirectResponse
+    {
+        $person = DB::table('users')->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();
+        abort_unless($person->two_factor_confirmed_at, 409, 'This account does not use two-factor authentication.');
+
+        DB::table('users')->where('id', $id)->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'updated_at' => now(),
+        ]);
+        $this->audit($r, 'user.two_factor_reset', $person->name.' <'.$person->email.'>');
+        DB::table('workspace_notifications')->insert([
+            'user_id' => $id,
+            'message' => 'Two-factor authentication was reset by Management. Sign in with your password and set it up again. / Pengesahan dua faktor telah ditetapkan semula oleh Pengurusan. Log masuk dengan kata laluan dan sediakannya semula.',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Two-factor reset for '.$person->name.'. They can sign in with their password and set it up again. / Dua faktor ditetapkan semula untuk '.$person->name.'.');
+    }
+
     public function updatePerson(Request $r, int $id): RedirectResponse
     {
         $person = DB::table('users')->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();

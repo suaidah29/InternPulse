@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Password;
+use App\Services\PasswordPolicy;
 
 class InvitationController extends Controller
 {
@@ -21,7 +21,9 @@ class InvitationController extends Controller
 
     public function accept(Request $request, string $token): RedirectResponse
     {
-        $data = $request->validate(['password' => ['required', 'confirmed', Password::min(12)->mixedCase()->numbers()->symbols()]]);
+        $row = DB::table('supervisor_invitations')->where('token_hash', hash('sha256', $token))->first();
+        abort_unless($row && ! $row->accepted_at && ! $row->revoked_at && now()->lt($row->expires_at), 410, 'Invitation is invalid or expired.');
+        $data = $request->validate(['password' => PasswordPolicy::rulesFor($row->name, $row->email)]);
         DB::transaction(function () use ($token, $data): void {
             $row = DB::table('supervisor_invitations')->where('token_hash', hash('sha256', $token))->lockForUpdate()->first();
             abort_unless($row && ! $row->accepted_at && ! $row->revoked_at && now()->lt($row->expires_at), 410, 'Invitation is invalid or expired.');

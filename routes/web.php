@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\InternSupportController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\PasswordRecoveryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileSecurityController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Services\SupervisorInvitations;
@@ -20,18 +23,20 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [PasswordRecoveryController::class, 'form'])->name('password.reset');
     Route::post('/reset-password', [PasswordRecoveryController::class, 'reset'])->middleware('throttle:6,1')->name('password.update');
 });
-Route::get('/login', fn () => Auth::check() ? to_route('dashboard') : view('login'))->name('login');
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate(['email' => 'required|email', 'password' => 'required|string']);
-    if (! Auth::attempt($credentials + ['is_active' => true])) {
-        return back()->withErrors(['email' => 'Invalid email or password. / E-mel atau kata laluan tidak tepat.'])->onlyInput('email');
-    }$request->session()->regenerate();
-
-    return to_route('dashboard');
-})->middleware('throttle:6,1');
+Route::get('/login', [LoginController::class, 'show'])->name('login');
+Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1,login:')->name('login.store');
+Route::get('/login/two-factor', [TwoFactorChallengeController::class, 'show'])->name('login.two-factor');
+Route::post('/login/two-factor', [TwoFactorChallengeController::class, 'store'])->middleware('throttle:6,1,two-factor:')->name('login.two-factor.store');
+Route::post('/login/two-factor/cancel', [TwoFactorChallengeController::class, 'destroy'])->name('login.two-factor.cancel');
 Route::middleware(['auth', EnsureActiveAccount::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [ProfileSecurityController::class, 'password'])->middleware('throttle:10,1')->name('profile.password');
+    Route::post('/profile/two-factor', [ProfileSecurityController::class, 'start'])->middleware('throttle:10,1')->name('profile.two-factor.start');
+    Route::post('/profile/two-factor/cancel', [ProfileSecurityController::class, 'cancel'])->name('profile.two-factor.cancel');
+    Route::post('/profile/two-factor/enable', [ProfileSecurityController::class, 'enable'])->middleware('throttle:10,1')->name('profile.two-factor.enable');
+    Route::post('/profile/two-factor/disable', [ProfileSecurityController::class, 'disable'])->middleware('throttle:10,1')->name('profile.two-factor.disable');
+    Route::post('/profile/two-factor/recovery-codes', [ProfileSecurityController::class, 'regenerate'])->middleware('throttle:10,1')->name('profile.two-factor.recovery');
     Route::get('/profile/images/{kind}', [ProfileController::class, 'image'])->name('profile.image');
     Route::get('/dashboard', function () {
         abort_unless(in_array(Auth::user()->role, ['superadmin', 'supervisor', 'intern']), 403);
@@ -104,6 +109,7 @@ Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse']
     Route::get('/people', [WorkspaceController::class, 'people'])->name('people');
     Route::post('/people/{id}', [WorkspaceController::class, 'updatePerson'])->name('people.update');
     Route::post('/people/{id}/internship', [WorkspaceController::class, 'updateInternship'])->whereNumber('id')->name('people.internship');
+    Route::post('/people/{id}/two-factor', [WorkspaceController::class, 'resetTwoFactor'])->whereNumber('id')->middleware('throttle:10,1,management-edit:')->name('people.two-factor');
     Route::post('/interns/invite', [WorkspaceController::class, 'inviteIntern'])->middleware('throttle:20,1,intern-invite:')->name('interns.invite');
     Route::get('/departments', [WorkspaceController::class, 'departments'])->name('departments');
     Route::post('/departments', [WorkspaceController::class, 'saveDepartment'])->name('departments.store');
