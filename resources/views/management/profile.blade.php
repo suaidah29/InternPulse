@@ -1,7 +1,8 @@
 @extends('management.shell')
 @section('title','My profile')
 @section('content')
-<section class="glass panel"><h1>{{ $t('My profile','Profil saya') }}</h1>
+<x-page-header :eyebrow="$t('YOUR ACCOUNT','AKAUN ANDA')" :heading="$t('My profile','Profil saya')" :lede="$t('Your details appear on tasks, logbook entries and evaluations, so keep them current.','Maklumat anda muncul pada tugasan, logbook dan penilaian, jadi pastikan ia terkini.')" />
+<section class="glass panel">
 @include('management.notices')
 <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data">@csrf
 <div class="form-grid"><label>{{ $t('Full name','Nama penuh') }}<input name="name" value="{{ old('name',$person->name) }}" required maxlength="255"></label><label>Email<input type="email" name="email" value="{{ old('email',$person->email) }}" required></label>
