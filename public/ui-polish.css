@@ -176,3 +176,12 @@
 .recovery-codes li{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;letter-spacing:.04em;padding:8px 10px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);user-select:all}
 .danger-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--danger-fill);background:transparent;color:var(--danger-ink);font:inherit;font-weight:600;cursor:pointer}
 .danger-button:hover,.danger-button:focus-visible{background:var(--danger-tint)}
+
+/* Search forms: the button stretched to the height of the label + input block,
+   because management.css sets display:flex with the default align-items:stretch. */
+.management-page .search-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
+.management-page .search-form>label:not(.sr-only){flex:1 1 240px;display:grid;gap:6px;min-width:0}
+.management-page .search-form input,.management-page .search-form select{flex:1 1 160px;width:auto;min-width:0;min-height:44px}
+.management-page .search-form>label:not(.sr-only) input{width:100%;flex:0 1 auto}
+.management-page .search-form>button{flex:0 0 auto;align-self:flex-end;min-height:44px}
+@media(max-width:640px){.management-page .search-form>button{width:100%}}
