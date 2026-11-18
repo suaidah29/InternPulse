@@ -2,7 +2,7 @@
 @section('title','Logbook')
 @section('content')
 @include('management.notices')
-<div class="page-heading"><div><h1>Logbook</h1><p class="muted">{{ $t('Private notes and documents sent to your supervisor are separate. This logbook is optional for interns using a physical logbook.','Catatan peribadi dan dokumen kepada SV adalah berasingan. Penggunaan logbook ini adalah pilihan untuk intern yang menggunakan hardcopy.') }}</p></div></div>
+<x-page-header :eyebrow="$t('DAILY REFLECTION','RENUNGAN HARIAN')" :heading="$t('Logbook','Buku log')" :lede="$t('Private notes and documents sent to your supervisor are separate. This logbook is optional for interns using a physical logbook.','Catatan peribadi dan dokumen kepada SV adalah berasingan. Penggunaan logbook ini adalah pilihan untuk intern yang menggunakan hardcopy.')" />
 @if(auth()->user()->role==='intern')
 <div class="lower-grid"><section class="glass section-card" id="logbook-form"><h2>{{ $t('Private notes','Catatan peribadi') }}</h2><p>{{ $t('Only you can see these notes and photos. One entry is saved per date.','Hanya anda boleh melihat catatan dan gambar ini. Satu catatan bagi setiap tarikh.') }}</p>
 <form method="post" action="{{ route('workspace.logbook.store') }}" enctype="multipart/form-data">@csrf

@@ -1,9 +1,8 @@
 @extends('management.shell')
 @section('content')
-<h1 class="sr-only">{{ $t('Management overview','Gambaran pengurusan') }}</h1>
 @include('management.welcome-banner')
 <div class="workspace-grid">
-<div class="workspace-content"><section class="page-heading"><div><p class="eyebrow">{{ $t('YOUR TEAM, CONNECTED','PASUKAN ANDA, TERHUBUNG') }}</p><h2>{{ $t('Management overview','Gambaran pengurusan') }}</h2></div><button class="primary-button" data-open-invite>+ {{ $t('Invite supervisor','Jemput penyelia') }}</button></section>
+<div class="workspace-content"><x-page-header :eyebrow="$t('YOUR TEAM, CONNECTED','PASUKAN ANDA, TERHUBUNG')" :heading="$t('Management overview','Gambaran pengurusan')" :lede="$t('Interns, supervisors and the work in flight, across every department.','Intern, penyelia dan kerja yang sedang berjalan, merentas semua jabatan.')"><button class="primary-button" data-open-invite>+ {{ $t('Invite supervisor','Jemput penyelia') }}</button></x-page-header>
 @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
 @if(session('warning'))<div class="notice warning" role="status">{{ session('warning') }}</div>@endif
 @if($errors->any())<div class="notice warning" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
