@@ -5,6 +5,6 @@
 @include('management.notices')
 <form method="post" action="{{ route($reset?'password.update':'password.email') }}">@csrf
 <label>Email<input type="email" name="email" required value="{{ old('email',$email??'') }}" autocomplete="email"></label>
-@if($reset)<input type="hidden" name="token" value="{{ $token }}"><label>{{ $t('New password','Kata laluan baharu') }}<input id="new-password" type="password" name="password" autocomplete="new-password" minlength="12" required></label><label>{{ $t('Confirm password','Sahkan kata laluan') }}<input id="confirm-password" type="password" name="password_confirmation" autocomplete="new-password" minlength="12" required></label>@endif
+@if($reset)<input type="hidden" name="token" value="{{ $token }}"><label>{{ $t('New password','Kata laluan baharu') }}<input id="new-password" type="password" name="password" autocomplete="new-password" minlength="12" required></label><label>{{ $t('Confirm password','Sahkan kata laluan') }}<input id="confirm-password" type="password" name="password_confirmation" autocomplete="new-password" minlength="12" required></label><ul class="policy-list">@foreach(\App\Services\PasswordPolicy::summary() as [$english, $malay])<li>{{ $t($english, $malay) }}</li>@endforeach</ul>@endif
 <button class="primary-button full-width">{{ $reset?$t('Save password','Simpan kata laluan'):$t('Send reset link','Hantar pautan pemulihan') }}</button></form></section></main>
 @endsection

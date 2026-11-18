@@ -160,3 +160,19 @@
 .kanban-empty{margin:0;padding:12px;text-align:center;font-size:13px}
 @media(max-width:760px){.kanban-cols{grid-template-columns:repeat(4,78vw);scroll-snap-type:x mandatory}.kanban-col{scroll-snap-align:start}}
 @media (prefers-reduced-motion:reduce){.kanban-list{transition:none}}
+
+/* ------------------------------------------------------------------
+   Sign-in security (password policy + two-factor)
+   ------------------------------------------------------------------ */
+.policy-list{margin:8px 0 14px;padding-left:20px;color:var(--secondary);font-size:14px;display:grid;gap:4px}
+#security h3{margin-top:22px}
+.security-divider{border:0;border-top:1px solid var(--line);margin:22px 0}
+.security-actions{display:grid;gap:14px;margin-top:10px}
+.inline-field{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:14px;margin-bottom:8px}
+.inline-field input{max-width:280px;flex:1 1 200px}
+.secret-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;letter-spacing:.06em;line-height:1.6;padding:14px 16px;border-radius:12px;background:var(--soft);border:1px dashed var(--line-strong,var(--line));overflow-wrap:anywhere;user-select:all}
+.recovery-block{margin-top:18px;padding:16px;border-radius:14px;background:var(--warn-tint);border:1px solid var(--line)}
+.recovery-codes{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0 0;padding:0}
+.recovery-codes li{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;letter-spacing:.04em;padding:8px 10px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);user-select:all}
+.danger-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--danger-fill);background:transparent;color:var(--danger-ink);font:inherit;font-weight:600;cursor:pointer}
+.danger-button:hover,.danger-button:focus-visible{background:var(--danger-tint)}

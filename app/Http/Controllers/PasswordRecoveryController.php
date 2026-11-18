@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\PasswordPolicy;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,7 +40,10 @@ class PasswordRecoveryController extends Controller
 
     public function reset(Request $request): RedirectResponse
     {
-        $data = $request->validate(['token' => 'required', 'email' => 'required|email', 'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(12)->mixedCase()->numbers()->symbols()]]);
+        $data = $request->validate(['token' => 'required', 'email' => 'required|email']);
+        $owner = User::whereRaw('LOWER(email) = ?', [strtolower($data['email'])])->first();
+        $request->validate(['password' => PasswordPolicy::rulesFor($owner?->name, $owner?->email)]);
+        $data['password'] = (string) $request->input('password');
         $status = Password::reset($data + ['is_active' => true], function (User $user, string $password): void {
             $user->password = $password;
             $user->setRememberToken(Str::random(60));
