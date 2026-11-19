@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogbookController;
+use App\Http\Controllers\InboxController;
 use App\Http\Controllers\InternSupportController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\PasswordRecoveryController;
@@ -78,6 +79,7 @@ Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->na
     Route::post('/evaluations/{id}', [InternSupportController::class, 'evaluation'])->whereNumber('id')->name('evaluations.save');
     Route::post('/tasks/{id}/decision', [WorkspaceController::class, 'decideTask'])->name('tasks.decision');
     Route::get('/overview', [WorkspaceController::class, 'overview'])->name('overview');
+    Route::get('/inbox', [InboxController::class, 'index'])->name('inbox');
     Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
     Route::post('/team/invite', function (Request $request, SupervisorInvitations $service) {
         abort_unless($request->user()->role === 'supervisor', 403);
