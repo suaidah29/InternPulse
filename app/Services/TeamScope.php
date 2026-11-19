@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * "Which people and tasks may this account see?"
  *
- * Extracted from WorkspaceController so a second controller (the inbox) can ask
+ * Extracted from the workspace controllers so a second one (the inbox) can ask
  * the same question without copying the rules — a copied scope rule is how an
  * intern ends up looking at someone else's task.
  */
@@ -53,6 +53,24 @@ final class TeamScope
         return $this->taskQuery($user)
             ->when($user->role === 'supervisor', fn (Builder $q) => $q->where('assigned_to', '!=', $user->id))
             ->pluck('id');
+    }
+
+    /** One task, or 404 when it is outside this account's team. */
+    public function taskFor(User $user, int $id): object
+    {
+        return $this->taskQuery($user)->where('id', $id)->firstOrFail();
+    }
+
+    /** @return list<object> active interns and supervisors this account may assign to */
+    public function membersFor(User $user): array
+    {
+        return DB::table('users')
+            ->whereIn('id', $this->idsFor($user))
+            ->whereIn('role', ['intern', 'supervisor'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->all();
     }
 
     /** @return array<int, string> id => name, for the people in scope */

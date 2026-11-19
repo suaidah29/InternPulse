@@ -8,7 +8,7 @@ use App\Models\User;
  * Which workspace screens a role may open at all.
  *
  * These are page-level rules, not rules about a particular record: they used to sit
- * at the top of every action in WorkspaceController and in the Inbox controller.
+ * at the top of the workspace controllers and the Inbox controller.
  */
 final class WorkspacePolicy extends Policy
 {

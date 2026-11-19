@@ -174,11 +174,19 @@ nginx `location` block if you need them there.
 ## Layout
 
 ```
-app/Http/Controllers/   WorkspaceController (intern + management), ManagementController,
-                        LogbookController, ProfileController, ProfileSecurityController,
+app/Http/Controllers/   One controller per job: WorkspaceController (the dashboard
+                        each role opens on), TaskController, ReviewController,
+                        AttendanceController, TeamController, GuideController,
+                        NotificationController, FileController, LogbookController,
+                        InternSupportController, InboxController, Management/
+                        (superadmin: people, departments, writing guides, reports),
+                        ManagementController (dashboard, invitations, import,
+                        activity), ProfileController, ProfileSecurityController,
                         PasswordRecoveryController, InvitationController, auth/*
+                        Concerns/ScopesWorkspace holds the four "who may I see"
+                        lookups those screens share
 app/Services/           Business rules: TaskStatus, Reminders, TwoFactor, PasswordPolicy,
-                        SupervisorInvitations, TeamScope (who is in whose team)
+                        SupervisorInvitations, TeamScope (who is in whose team), Audit
 app/Policies/           Who may do what. Subjects are query-builder rows, so each policy
                         publishes the ability names it answers to and
                         Providers/AuthorizationServiceProvider registers them with the Gate:
