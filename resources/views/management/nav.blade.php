@@ -16,6 +16,7 @@
 @if(auth()->user()->role==='superadmin')
 <a href="{{ route('management.reports') }}" class="{{ $active('management.reports') }}" {!! $current('management.reports') !!}>{{ $t('Reports','Laporan') }}</a>
 <a href="{{ route('management.activity') }}" class="{{ $active('management.activity') }}" {!! $current('management.activity') !!}>{{ $t('Audit trail','Jejak audit') }}</a>
+<a href="{{ route('management.health') }}" class="{{ $active('management.health') }}" {!! $current('management.health') !!}>{{ $t('System health','Kesihatan sistem') }}</a>
 @endif
 @if(auth()->user()->role==='supervisor')<a href="{{ route('workspace.team') }}" class="{{ $active('workspace.team') }}" {!! $current('workspace.team') !!}>{{ $t('My team','Pasukan saya') }}</a>@endif
 @if(auth()->user()->role!=='superadmin')
