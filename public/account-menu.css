@@ -18,7 +18,7 @@
 .management-shell>header{position:sticky;top:8px;z-index:50;overflow:visible}
 .account-settings{padding:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0}
 .account-settings p{margin:0 0 10px;color:var(--ink);font-size:var(--text-sm);font-weight:700}
-.account-settings-label{display:block;margin:10px 0 5px;color:var(--secondary);font-size:var(--text-label);font-weight:600}
+.account-settings-label{display:block;margin:10px 0 5px;color:var(--secondary);font-size:var(--text-meta);font-weight:600}
 .account-settings .theme-switch,.account-settings .language-switch{display:flex;gap:3px;width:100%;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft);box-sizing:border-box}
 .management-page .account-settings .theme-switch button,.management-page .account-settings .language-switch button{display:block;flex:1;width:auto;padding:7px 4px;color:var(--secondary);text-align:center;border-radius:7px}
 .management-page .account-settings button[aria-pressed="true"]{background:var(--surface-strong);color:var(--ink);box-shadow:0 1px 5px #0002}

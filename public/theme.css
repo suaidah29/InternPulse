@@ -111,7 +111,7 @@ header .header-settings-panel .theme-switch{margin-bottom:18px!important}
 header .header-settings-panel button{flex:1;min-width:0;height:32px!important;min-height:0!important;padding:5px 10px!important;font-size:var(--text-meta)!important}
 header .header-settings-panel .language-switch>span{display:none}
 header .header-notifications{position:relative;flex-shrink:0;width:42px;padding:10px}
-.notification-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:20px;background:#dd1232;color:#fff;font:600 11px/18px Inter,sans-serif;text-align:center;border:2px solid var(--surface,#fff);box-sizing:content-box}
+.notification-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:20px;background:#dd1232;color:#fff;font:600 12px/18px Inter,sans-serif;text-align:center;border:2px solid var(--surface,#fff);box-sizing:content-box}
 @media(max-width:480px){header .header-settings summary{width:42px;padding:10px}header .header-settings summary>span{display:none}header .header-settings-panel{position:fixed;top:auto;right:16px;margin-top:12px}.management-page header{gap:8px}.management-page header .header-context{display:none}}
 @media print{.header-settings,.header-notifications{display:none!important}}
 .public-theme:not(.login-page) .hero{padding-top:clamp(100px,20vh,220px);padding-bottom:12px}
