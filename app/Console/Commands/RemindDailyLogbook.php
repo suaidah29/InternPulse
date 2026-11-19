@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\ReminderMail;
 use App\Services\Reminders;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -25,7 +26,20 @@ class RemindDailyLogbook extends Command
             $sent += Reminders::notifyOnce(
                 $id,
                 'Logbook reminder',
-                'Logbook reminder / Peringatan buku log: no entry for '.$date->format('j M Y').'. Add it before the day ends.'
+                'Logbook reminder / Peringatan buku log: no entry for '.$date->format('j M Y').'. Add it before the day ends.',
+                null,
+                Reminders::EMAIL_LOGBOOK,
+                new ReminderMail(
+                    subjectLine: 'Logbook reminder / Peringatan buku log — '.$date->format('j M Y'),
+                    heading: 'Your logbook is empty for '.$date->format('j M Y'),
+                    lines: [
+                        'Log what you worked on so your supervisor can review it.',
+                        'Catat kerja anda supaya penyelia dapat menyemaknya.',
+                        'If you have already logged your day, you can ignore this email. / Jika anda sudah mencatat, abaikan e-mel ini.',
+                    ],
+                    actionLabel: 'Open my logbook / Buka buku log',
+                    actionUrl: route('workspace.logbook'),
+                ),
             ) ? 1 : 0;
         }
 

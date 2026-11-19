@@ -26,7 +26,8 @@ with hand-written CSS — no build step is needed to run the app.
 - **Reports** — filterable summary with a CSV export.
 - **Notifications** — in-app bell for task decisions, comments and reminders.
 - **Scheduled reminders** — `logbook:remind` (weekdays 17:30) and `tasks:overdue`
-  (weekdays 09:00), Asia/Kuala_Lumpur, idempotent per person per day.
+  (weekdays 09:00), Asia/Kuala_Lumpur, idempotent per person per day. Each person
+  chooses in their profile whether the reminders also arrive by email.
 - **Security** — password policy, two-factor authentication (TOTP with recovery
   codes), supervisor invitations by email, hashed invitation tokens, audited
   management actions, login throttling.
@@ -146,8 +147,6 @@ routes/                 web.php, console.php (schedule)
 
 - **No CI style check.** Pint passes on most files but not all; run
   `vendor/bin/pint` before gating it in CI.
-- **Reminders are in-app only** — no email channel yet, since mail was not
-  configured when they were written.
 - **No holiday awareness** — a weekday public holiday still sends "you have not
   logged today".
 - **Pagination is partial** — people, tasks, records and the audit log paginate;

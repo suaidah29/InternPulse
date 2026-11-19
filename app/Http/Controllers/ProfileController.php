@@ -64,6 +64,28 @@ class ProfileController extends Controller
         return to_route('profile.edit')->with('success', 'Profile updated. / Profil dikemas kini.');
     }
 
+    /**
+     * Reminder emails are opted out per type, so an intern can keep the logbook
+     * nudge but stop the overdue-task mail (or the other way round).
+     */
+    public function reminders(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $request->validate([
+            'email_logbook_reminders' => 'nullable|boolean',
+            'email_task_reminders' => 'nullable|boolean',
+        ]);
+
+        $preferences = ['email_task_reminders' => $request->boolean('email_task_reminders')];
+        if ($user->role === 'intern') {
+            $preferences['email_logbook_reminders'] = $request->boolean('email_logbook_reminders');
+        }
+
+        $user->forceFill($preferences)->save();
+
+        return to_route('profile.edit')->with('success', 'Reminder emails updated. / E-mel peringatan dikemas kini.');
+    }
+
     public function image(Request $request, string $kind): Response
     {
         abort_unless(in_array($kind, ['photo', 'signature']), 404);
