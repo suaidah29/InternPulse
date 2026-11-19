@@ -111,8 +111,26 @@ app still serves pages — it just silently stops sending mail and reminders.
    forgotten password cannot be reset.
 7. **Backups** — back up the database **and** `storage/app/private` together.
    Restoring one without the other gives you logbook rows pointing at missing files.
-8. **Health** — `php artisan about` for a summary, `storage/logs/laravel.log` for
-   errors. `php artisan down` / `up` for maintenance windows during migrations.
+8. **Health** — sign in as superadmin and open **System health** (`/management/health`).
+   It answers the four questions that decide whether this install is actually
+   working, none of which show up on a page a user would complain about:
+
+   | Check | Fails when | Fix |
+   | --- | --- | --- |
+   | Queue worker | jobs sit in `jobs` longer than 15 minutes | start the worker from step 5 |
+   | Failed jobs | anything is in `failed_jobs` | `php artisan queue:failed`, then `queue:retry all` |
+   | Mail | an invitation or reset ended up `delivery_status=failed` | fix `MAIL_*`, then resend from Overview → Invitations |
+   | Scheduler | the heartbeat is older than 16 minutes | check the cron entry from step 4 |
+
+   The heartbeat is a `Schedule::call` in `routes/console.php` that stores a
+   timestamp in the cache every five minutes, so a missing cron entry is visible
+   instead of showing up weeks later as "the reminders never arrived". The page
+   also prints the live `schedule:list`, disk and upload-directory usage, and the
+   versions in play. It is read-only on purpose — nothing on a web page should
+   restart a worker.
+
+   For a shell view: `php artisan about`, `storage/logs/laravel.log`,
+   `php artisan down` / `up` around migrations.
 
 ### Environment variables that matter
 

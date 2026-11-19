@@ -9,6 +9,7 @@ use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\PasswordRecoveryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileSecurityController;
+use App\Http\Controllers\SystemHealthController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Services\SupervisorInvitations;
@@ -122,5 +123,6 @@ Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse']
     Route::get('/reports', [WorkspaceController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [WorkspaceController::class, 'export'])->name('reports.export');
     Route::get('/activity', [WorkspaceController::class, 'activity'])->name('activity');
+    Route::get('/health', [SystemHealthController::class, 'index'])->name('health');
 });
 
