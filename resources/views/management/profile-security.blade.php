@@ -23,8 +23,8 @@ $recoveryCodes = session('two_factor_recovery_codes');
 <p><span class="badge ok">{{ $t('On','Aktif') }}</span> <span class="muted">{{ $t('Enabled','Diaktifkan') }} {{ $person->two_factor_confirmed_at?->format('j M Y') }} · {{ count($person->recoveryCodes()) }} {{ $t('recovery codes left','kod pemulihan tinggal') }}</span></p>
 <p class="muted">{{ $t('Signing in needs your password and a code from your authenticator app.','Log masuk memerlukan kata laluan anda dan kod daripada aplikasi pengesah.') }}</p>
 <div class="security-actions">
-<form method="post" action="{{ route('profile.two-factor.recovery') }}">@csrf<label class="inline-field">{{ $t('Password','Kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="quiet-button">{{ $t('New recovery codes','Kod pemulihan baharu') }}</button></form>
-<form method="post" action="{{ route('profile.two-factor.disable') }}">@csrf<label class="inline-field">{{ $t('Password','Kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="danger-button">{{ $t('Turn off two-factor','Matikan dua faktor') }}</button></form>
+<form method="post" action="{{ route('profile.two-factor.recovery') }}">@csrf<label class="inline-field">{{ $t('Confirm password','Sahkan kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="quiet-button">{{ $t('New recovery codes','Kod pemulihan baharu') }}</button></form>
+<form method="post" action="{{ route('profile.two-factor.disable') }}">@csrf<label class="inline-field">{{ $t('Confirm password','Sahkan kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="danger-button">{{ $t('Turn off two-factor','Matikan dua faktor') }}</button></form>
 </div>
 @elseif($pendingSecret)
 <p class="muted">{{ $t('Add this key to your authenticator app (Google Authenticator, 1Password, Authy, Microsoft Authenticator), then enter the 6-digit code it shows. QR scanning is not available yet, so enter the key manually.','Tambah kunci ini dalam aplikasi pengesah anda (Google Authenticator, 1Password, Authy, Microsoft Authenticator), kemudian masukkan kod 6 digit yang dipaparkan. Imbasan QR belum tersedia, jadi masukkan kunci secara manual.') }}</p>
@@ -36,7 +36,7 @@ $recoveryCodes = session('two_factor_recovery_codes');
 <form method="post" action="{{ route('profile.two-factor.cancel') }}">@csrf<button class="quiet-button">{{ $t('Cancel setup','Batal persediaan') }}</button></form>
 @else
 <p class="muted">{{ $t('Two-factor authentication is off. Turning it on adds a second step at sign-in, so a stolen password is not enough on its own.','Pengesahan dua faktor dimatikan. Mengaktifkannya menambah langkah kedua semasa log masuk, jadi kata laluan yang dicuri tidak memadai.') }}</p>
-<form method="post" action="{{ route('profile.two-factor.start') }}">@csrf<label class="inline-field">{{ $t('Password','Kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="primary-button">{{ $t('Set up two-factor','Sediakan dua faktor') }}</button></form>
+<form method="post" action="{{ route('profile.two-factor.start') }}">@csrf<label class="inline-field">{{ $t('Confirm password','Sahkan kata laluan') }}<input type="password" name="current_password" autocomplete="current-password" required></label><button class="primary-button">{{ $t('Set up two-factor','Sediakan dua faktor') }}</button></form>
 @endif
 
 @if($recoveryCodes)
