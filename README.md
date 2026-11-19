@@ -1,58 +1,157 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# InternPulse
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Internship management for a small team: task assignment, daily logbooks with
+supervisor sign-off, attendance, evaluations, guides and reports — with three
+roles that each get their own view of the same data.
 
-## About Laravel
+| Role | What they do |
+| --- | --- |
+| **Superadmin** | Everything a supervisor can do, plus departments, people management, invitations and a 2FA reset for locked-out accounts. |
+| **Supervisor** | Owns a team of interns: assigns and reviews tasks, signs off logbooks, records attendance, writes evaluations, exports reports. |
+| **Intern** | Works the kanban board, logs progress, submits the daily logbook with photo proof, reads guides and their evaluation. |
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Built on Laravel 13 (PHP 8.3+), SQLite or MySQL/Postgres, and plain Blade views
+with hand-written CSS — no build step is needed to run the app.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## What is in here
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Tasks** — list and kanban board, priorities, due dates, progress notes, comments,
+  blockers, help requests, approve/changes-requested decisions, archive.
+- **Logbook** — one entry per intern per day, optional photo, private documents with
+  supervisor verify/return/resubmit and revision history. Files are served through
+  authorised routes from the private disk, never from `public/`.
+- **Attendance** — daily records with a per-intern percentage and streak.
+- **Evaluations & reviews** — supervisor ratings, rating breakdown, review queue.
+- **Insights** — dashboard KPIs, per-intern workload, internship timeline, logbook streak.
+- **Reports** — filterable summary with a CSV export.
+- **Notifications** — in-app bell for task decisions, comments and reminders.
+- **Scheduled reminders** — `logbook:remind` (weekdays 17:30) and `tasks:overdue`
+  (weekdays 09:00), Asia/Kuala_Lumpur, idempotent per person per day.
+- **Security** — password policy, two-factor authentication (TOTP with recovery
+  codes), supervisor invitations by email, hashed invitation tokens, audited
+  management actions, login throttling.
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Local setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Open `/` for the public landing page, `/login` to sign in. Create accounts with
+`php artisan tinker` or your own seeder — there is no default password.
 
-## Contributing
+## Tests
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan test
+```
 
-## Code of Conduct
+The suite runs against in-memory SQLite with `MAIL_MAILER=array` and
+`QUEUE_CONNECTION=sync`, so no services or build step are required. It also runs
+in CI on PHP 8.3 and 8.4 for every push and pull request
+(`.github/workflows/tests.yml`).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Useful single-file runs while working:
 
-## Security Vulnerabilities
+```bash
+php artisan test --filter=PageHeaderTest
+php artisan test tests/Feature/TwoFactorTest.php
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Deploying
 
-## License
+Checklist for a real deployment. Miss the scheduler or the queue worker and the
+app still serves pages — it just silently stops sending mail and reminders.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Environment** — `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` set to the
+   real HTTPS URL. Set `APP_KEY` once and keep it: it encrypts the 2FA secrets, so
+   changing it locks every two-factor user out.
+2. **Database** — set `DB_CONNECTION` and friends, then `php artisan migrate --force`.
+   SQLite is fine for a preview; use MySQL or Postgres for real use.
+3. **Permissions** — the web user needs write access to `storage/` and
+   `bootstrap/cache/`. Uploaded logbook photos and documents live in
+   `storage/app/private` (the `local` disk, served through controller routes), so
+   no `storage:link` is needed — but that directory **is** part of your data.
+4. **Scheduler** — one cron entry drives both reminder commands:
+
+   ```cron
+   * * * * * cd /path/to/internpulse && php artisan schedule:run >> /dev/null 2>&1
+   ```
+
+   Confirm with `php artisan schedule:list`.
+5. **Queue worker** — invitations and password-reset mail are queued
+   (`QUEUE_CONNECTION=database`). Keep a worker alive under systemd or supervisor:
+
+   ```ini
+   [Unit]
+   Description=InternPulse queue worker
+   After=network.target
+
+   [Service]
+   User=www-data
+   Restart=always
+   WorkingDirectory=/path/to/internpulse
+   ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   Without a worker, messages sit in the `jobs` table forever. Watch for failures
+   with `php artisan queue:failed`.
+6. **Mail** — `MAIL_MAILER=log` writes messages to `storage/logs/laravel.log`
+   instead of sending them. Set a real mailer (SMTP, Mailgun, SES) before inviting
+   anyone: with the log mailer, an invited supervisor never receives the link and a
+   forgotten password cannot be reset.
+7. **Backups** — back up the database **and** `storage/app/private` together.
+   Restoring one without the other gives you logbook rows pointing at missing files.
+8. **Health** — `php artisan about` for a summary, `storage/logs/laravel.log` for
+   errors. `php artisan down` / `up` for maintenance windows during migrations.
+
+### Environment variables that matter
+
+| Variable | Why |
+| --- | --- |
+| `APP_KEY` | Encrypts 2FA secrets and sessions. Set once, never regenerate. |
+| `APP_DEBUG` | Must be `false` in production; `true` leaks stack traces and env values. |
+| `APP_URL` | Used for invitation links, password-reset links and asset URLs. |
+| `DB_*` | Database connection. |
+| `QUEUE_CONNECTION` | `database` in production — requires the worker from step 5. |
+| `MAIL_*` | Real mailer required for invitations and password resets. |
+| `SESSION_DRIVER` | `database` by default; sessions end up in your backups. |
+
+## Layout
+
+```
+app/Http/Controllers/   WorkspaceController (intern + management), ManagementController,
+                        LogbookController, ProfileController, ProfileSecurityController,
+                        PasswordRecoveryController, InvitationController, auth/*
+app/Services/           Business rules: TaskStatus, Reminders, TwoFactor, PasswordPolicy,
+                        SupervisorInvitations
+app/Console/Commands/   logbook:remind, tasks:overdue
+public/                 Hand-written CSS (landing/*, management.css, theme.css,
+                        workspace-ui.css, then feature files, with ui-polish.css loaded last —
+                        override there, not in the earlier files) and the static landing page
+resources/views/        Blade views; the shared shell is management/shell.blade.php and the
+                        page title band is components/page-header.blade.php
+routes/                 web.php, console.php (schedule)
+```
+
+## Known gaps
+
+- **No CI style check.** Pint passes on most files but not all; run
+  `vendor/bin/pint` before gating it in CI.
+- **Reminders are in-app only** — no email channel yet, since mail was not
+  configured when they were written.
+- **No holiday awareness** — a weekday public holiday still sends "you have not
+  logged today".
+- **Pagination is partial** — people, tasks, records and the audit log paginate;
+  notifications, approvals, guides and evaluations load every row.
+- **`resources/views/layout.blade.php` and `welcome.blade.php` are unused** — the
+  live shell is `management/shell.blade.php` and `/` serves the static landing page.
+- **No QR code for 2FA setup** — the secret is shown as text and typed by hand.
