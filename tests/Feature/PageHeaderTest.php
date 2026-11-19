@@ -82,7 +82,9 @@ class PageHeaderTest extends TestCase
         $detail = $this->actingAs($intern)->get(route('workspace.tasks.show', $task))->assertOk()->getContent();
         $this->assertStringContainsString('Draft the onboarding deck', $detail);
         $this->assertStringContainsString('Engineering', $detail);
-        $this->assertStringContainsString($intern->name, $detail, 'the assignee is named in the header lede');
+        // Escaped, because Blade renders the name inside HTML: Faker occasionally
+        // produces an apostrophe ("Torey O'Kon") and the raw comparison then fails.
+        $this->assertStringContainsString(e($intern->name), $detail, 'the assignee is named in the header lede');
         $this->assertStringContainsString('2026-12-31', $detail);
         $this->assertStringContainsString('page-header-actions', $detail, 'status badge should sit in the header actions');
     }
