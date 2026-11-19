@@ -9,6 +9,7 @@
 <a href="{{ route('management.departments') }}" class="{{ $active('management.departments') }}" {!! $current('management.departments') !!}>{{ $t('Departments','Jabatan') }}</a>
 @endif
 @if(auth()->user()->role!=='superadmin')<a href="{{ route('workspace.overview') }}" class="{{ $active('workspace.overview') }}" {!! $current('workspace.overview') !!}>{{ $t('Dashboard','Papan pemuka') }}</a>@endif
+@if(auth()->user()->role!=='intern')<a href="{{ route('workspace.inbox') }}" class="{{ $active('workspace.inbox') }}" {!! $current('workspace.inbox') !!}>{{ $t('Inbox','Peti masuk') }}@php($waiting = app(\App\Services\ActionQueue::class)->countFor(auth()->user()))@if($waiting > 0)<span class="nav-badge" aria-label="{{ $waiting }} waiting">{{ $waiting }}</span>@endif</a>@endif
 <a href="{{ route('workspace.tasks') }}" class="{{ $active('workspace.tasks') }}" {!! $current('workspace.tasks') !!}>{{ (auth()->user()->role==='intern'?$t('My tasks','Tugasan saya'):$t('Team tasks','Tugasan pasukan')) }}</a>
 @if(auth()->user()->role!=='intern')<a href="{{ route('workspace.reviews') }}" class="{{ $active('workspace.reviews') }}" {!! $current('workspace.reviews') !!}>{{ $t('Approvals','Kelulusan') }}</a>@endif
 <a href="{{ route('workspace.records') }}" class="{{ $active('workspace.records') }}" {!! $current('workspace.records') !!}>{{ (auth()->user()->role==='intern'?$t('My attendance','Kehadiran saya'):$t('Team attendance','Kehadiran pasukan')) }}</a>

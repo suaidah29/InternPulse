@@ -24,6 +24,10 @@ with hand-written CSS — no build step is needed to run the app.
 - **Evaluations & reviews** — supervisor ratings, rating breakdown, review queue.
 - **Insights** — dashboard KPIs, per-intern workload, internship timeline, logbook streak.
 - **Reports** — filterable summary with a CSV export.
+- **Inbox** — one page, for supervisors and superadmins, listing everything waiting
+  on a decision (work for review, due-date requests, logbook pages, attendance
+  photos, blockers, overdue tasks) with the approve/verify action inline. The
+  sidebar badge counts it. Interns have no inbox: their dashboard is the queue.
 - **Notifications** — in-app bell for task decisions, comments and reminders.
 - **Scheduled reminders** — `logbook:remind` (weekdays 17:30) and `tasks:overdue`
   (weekdays 09:00), Asia/Kuala_Lumpur, idempotent per person per day. Each person

@@ -248,3 +248,21 @@
 .management-page .email-change[open]>summary{margin-bottom:16px;border-bottom:1px solid var(--line)}
 .management-page .email-change .form-grid{margin:0}
 .management-page .email-change>.muted{margin:12px 0 0;font-size:12px}
+
+/* Inbox (needs-you queue). The badge is the only thing that should pull the eye:
+   a supervisor should be able to tell from the sidebar whether anything is
+   waiting without opening the page. */
+.management-page .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1}
+.management-page .inbox-section{margin-bottom:16px}
+.management-page .inbox-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.management-page .inbox-head h2{margin:0}
+.management-page .inbox-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:11px;font-weight:700;vertical-align:middle}
+.management-page .inbox-lede{margin:6px 0 14px;font-size:12px}
+.management-page .inbox-row{display:grid;grid-template-columns:1fr minmax(220px,300px);gap:16px;align-items:start}
+.management-page .inbox-row h3{margin:0 0 4px;font-size:14px}
+.management-page .inbox-actions:empty{display:none}
+.management-page .inbox-actions .form-grid{gap:8px;margin:0}
+.management-page .inbox-actions textarea{min-height:56px}
+.management-page .inbox-actions .primary-button{width:100%}
+.management-page .inbox-notice{margin-bottom:16px;background:rgba(180,83,15,.08)}
+@media (max-width:760px){.management-page .inbox-row{grid-template-columns:1fr}}

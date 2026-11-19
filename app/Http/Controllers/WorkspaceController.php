@@ -7,6 +7,7 @@ use App\Services\DocumentPreview;
 use App\Services\InternshipProgress;
 use App\Services\LogStreak;
 use App\Services\TaskStatus;
+use App\Services\TeamScope;
 use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
@@ -63,19 +64,12 @@ class WorkspaceController extends Controller
 
     private function teamIds(Request $r): array
     {
-        if ($r->user()->role === 'superadmin') {
-            return DB::table('users')->pluck('id')->all();
-        }
-        if ($r->user()->role === 'supervisor') {
-            return DB::table('users')->where('supervisor_id', $r->user()->id)->where('role', 'intern')->pluck('id')->push($r->user()->id)->all();
-        }
-
-        return [$r->user()->id];
+        return app(TeamScope::class)->idsFor($r->user());
     }
 
     private function tasksQuery(Request $r): Builder
     {
-        return DB::table('work_tasks')->whereIn('assigned_to', $this->teamIds($r));
+        return app(TeamScope::class)->taskQuery($r->user());
     }
 
     private function task(Request $r, int $id): object
