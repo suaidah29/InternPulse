@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WorkspaceActivity;
 use App\Services\DocumentPreview;
+use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -19,7 +20,7 @@ class LogbookController extends Controller
 {
     private function documents(Request $request): Builder
     {
-        abort_unless(in_array($request->user()->role, ['intern', 'supervisor']), 403);
+        // Scoping, not authorisation: Gate::authorize('logbook.view') runs first in index().
         $query = DB::table('logbook_documents');
         if ($request->user()->role === 'intern') {
             return $query->where('user_id', $request->user()->id);
@@ -30,6 +31,7 @@ class LogbookController extends Controller
 
     public function index(Request $request): View
     {
+        Gate::authorize('logbook.view');
         $documents = $this->documents($request)->orderByDesc('id')->paginate(10, ['*'], 'documents_page');
         $logs = DB::table('daily_logs')->where('user_id', $request->user()->id)->whereRaw($request->user()->role === 'intern' ? '1=1' : '1=0')->orderByDesc('activity_date')->paginate(10, ['*'], 'logs_page');
         $edit = $request->filled('edit') ? DB::table('daily_logs')->where('user_id', $request->user()->id)->where('id', $request->integer('edit'))->firstOrFail() : null;
@@ -42,7 +44,7 @@ class LogbookController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->role === 'intern', 403);
+        Gate::authorize('log.write');
         $data = $request->validate([
             'activity_date' => 'required|date_format:Y-m-d|before_or_equal:'.now('Asia/Kuala_Lumpur')->toDateString(),
             'points' => 'required|string|max:10000',
@@ -67,7 +69,7 @@ class LogbookController extends Controller
 
     public function photo(Request $request, int $id): Response
     {
-        abort_unless($request->user()->role === 'intern', 403);
+        Gate::authorize('log.photo');
         $log = DB::table('daily_logs')->where('user_id', $request->user()->id)->where('id', $id)->firstOrFail();
         abort_unless($log->photo_path && Storage::disk('local')->exists($log->photo_path), 404);
 
@@ -76,7 +78,7 @@ class LogbookController extends Controller
 
     public function submit(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->role === 'intern', 403);
+        Gate::authorize('logbook.create');
         $data = $request->validate(['title' => 'required|string|max:180', 'document' => 'required|file|mimes:pdf,doc,docx|max:10240']);
         $supervisor = DB::table('users')->where('id', $request->user()->supervisor_id)->where('role', 'supervisor')->where('is_active', true)->first();
         if (! $supervisor) {
@@ -95,7 +97,7 @@ class LogbookController extends Controller
 
     public function verify(Request $request, int $id): RedirectResponse
     {
-        abort_unless($request->user()->role === 'supervisor', 403);
+        Gate::authorize('logbook.verify');
         $data = $request->validate(['status' => ['required', Rule::in(['checked', 'verified'])]]);
         DB::transaction(function () use ($request, $id, $data): void {
             $document = $this->documents($request)->where('id', $id)->lockForUpdate()->firstOrFail();
@@ -118,7 +120,7 @@ class LogbookController extends Controller
 
     public function returnForChanges(Request $request, int $id): RedirectResponse
     {
-        abort_unless($request->user()->role === 'supervisor', 403);
+        Gate::authorize('logbook.verify');
         $data = $request->validate(['review_note' => 'required|string|max:2000']);
         DB::transaction(function () use ($request, $id, $data): void {
             $document = $this->documents($request)->where('id', $id)->lockForUpdate()->firstOrFail();
@@ -136,7 +138,7 @@ class LogbookController extends Controller
 
     public function resubmit(Request $request, int $id): RedirectResponse
     {
-        abort_unless($request->user()->role === 'intern', 403);
+        Gate::authorize('logbook.resubmit');
         $request->validate(['document' => 'required|file|mimes:pdf,doc,docx|max:10240']);
         $file = $request->file('document');
         $hash = hash_file('sha256', $file->getRealPath());
@@ -168,6 +170,7 @@ class LogbookController extends Controller
 
     public function file(Request $request, int $id, string $kind): Response
     {
+        Gate::authorize('logbook.view');
         $document = $this->documents($request)->where('id', $id)->firstOrFail();
         abort_unless(in_array($kind, ['document', 'signature']), 404);
         $path = $kind === 'document' ? $document->path : $document->signature_path;
@@ -179,6 +182,7 @@ class LogbookController extends Controller
 
     public function receipt(Request $request, int $id): View
     {
+        Gate::authorize('logbook.view');
         $document = $this->documents($request)->where('id', $id)->firstOrFail();
         abort_unless(in_array($document->status, ['checked', 'verified']) && $document->reviewed_at, 404);
         $intern = DB::table('users')->where('id', $document->user_id)->value('name');
@@ -186,5 +190,3 @@ class LogbookController extends Controller
         return view('management.logbook-receipt', compact('document', 'intern'));
     }
 }
-
-

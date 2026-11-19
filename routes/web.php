@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\InboxController;
 use App\Http\Controllers\InternSupportController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\PasswordRecoveryController;
 use App\Http\Controllers\ProfileController;
@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureActiveAccount;
 use App\Services\SupervisorInvitations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->to(asset('landing/index.html')))->name('home');
@@ -82,7 +83,7 @@ Route::middleware(['auth', EnsureActiveAccount::class])->prefix('workspace')->na
     Route::get('/inbox', [InboxController::class, 'index'])->name('inbox');
     Route::get('/team', [WorkspaceController::class, 'team'])->name('team');
     Route::post('/team/invite', function (Request $request, SupervisorInvitations $service) {
-        abort_unless($request->user()->role === 'supervisor', 403);
+        Gate::authorize('workspace.team');
         $request->merge(['supervisor_id' => $request->user()->id]);
 
         return app(WorkspaceController::class)->inviteIntern($request, $service);
@@ -127,4 +128,3 @@ Route::middleware(['auth', EnsureActiveAccount::class, 'can:manage-internpulse']
     Route::get('/activity', [WorkspaceController::class, 'activity'])->name('activity');
     Route::get('/health', [SystemHealthController::class, 'index'])->name('health');
 });
-
