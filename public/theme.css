@@ -10,8 +10,8 @@
 :root[data-theme=dark] .public-theme{background:#000}
 :root[data-theme=dark] .public-theme .bg-video{opacity:1;filter:none}
 :root[data-theme=dark] .public-theme .bg:after{background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.08) 38%,rgba(0,0,0,.6))}
-.public-theme header,.public-theme .login-card{background:var(--surface);border-color:var(--line);box-shadow:inset 0 1px 0 #ffffff65,0 10px 36px #29244209;backdrop-filter:blur(24px)}
-.public-theme header{flex-wrap:wrap}
+.login-page header,.public-theme .login-card{background:var(--surface);border-color:var(--line);box-shadow:inset 0 1px 0 #ffffff65,0 10px 36px #29244209;backdrop-filter:blur(24px)}
+.login-page header{flex-wrap:wrap}
 .public-theme .headline,.public-theme .headline span,.public-theme .stats strong,.public-theme .login-card h1,.public-theme .login-card label{color:var(--ink)}
 .public-theme .subhead,.public-theme .stats small,.public-theme .bottom,.public-theme .video-toggle,.public-theme .intro,.public-theme .help,.public-theme .login-home{color:var(--secondary)}
 .public-theme .stats{border-color:var(--line)}
@@ -49,14 +49,14 @@
 .management-page input::file-selector-button{color:var(--ink);background:var(--soft);border-color:var(--line)}
 @media(max-width:1050px) and (min-width:761px){.app-layout{grid-template-columns:190px minmax(0,1fr);gap:18px}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower-grid{grid-template-columns:1fr}}
 @media(min-width:761px){.sidebar-disclosure:not([open])>:not(summary){display:block}.sidebar-disclosure:not([open])>.module-nav{display:flex}}
-@media(max-width:760px){.app-layout{grid-template-columns:1fr;gap:20px}.workspace-sidebar{position:static;max-height:none;padding:10px 14px}.sidebar-disclosure>summary{display:flex;justify-content:space-between;align-items:center;list-style:none;padding:7px 4px;color:var(--ink)}.sidebar-disclosure>summary::-webkit-details-marker{display:none}.sidebar-caption{display:none}.workspace-sidebar .module-nav{padding-top:12px}.sidebar-profile{display:none}.public-theme header .logo{margin-right:auto}.public-theme .theme-switch{margin-left:auto}.public-theme header{gap:8px}.public-theme .page{height:auto;min-height:100dvh;overflow:visible}.public-theme{height:auto;min-height:100dvh;overflow:auto}.public-theme .hero{min-height:340px;padding:32px 0}.public-theme .headline{font-size:clamp(24px,6.7vw,52px)}}
+@media(max-width:760px){.app-layout{grid-template-columns:1fr;gap:20px}.workspace-sidebar{position:static;max-height:none;padding:10px 14px}.sidebar-disclosure>summary{display:flex;justify-content:space-between;align-items:center;list-style:none;padding:7px 4px;color:var(--ink)}.sidebar-disclosure>summary::-webkit-details-marker{display:none}.sidebar-caption{display:none}.workspace-sidebar .module-nav{padding-top:12px}.sidebar-profile{display:none}.login-page header .logo{margin-right:auto}.public-theme .theme-switch{margin-left:auto}.login-page header{gap:8px}.public-theme .page{height:auto;min-height:100dvh;overflow:visible}.public-theme{height:auto;min-height:100dvh;overflow:auto}.public-theme .hero{min-height:340px;padding:32px 0}.public-theme .headline{font-size:clamp(24px,6.7vw,52px)}}
 @media print{.workspace-sidebar{display:none!important}.app-layout{display:block}}
 /* Keep the original video visible; theme changes belong to the glass UI. */
 .public-theme .hero .headline,.public-theme .hero .headline span,.public-theme .stats strong{color:#fff;text-shadow:0 2px 18px #0007}
 .public-theme .hero .subhead,.public-theme .stats small,.public-theme .bottom,.public-theme .video-toggle{color:#f0edf0;text-shadow:0 1px 8px #000b}
 .public-theme .stats{border-color:#ffffff45}
-.public-theme header{background:rgba(255,255,255,.78);border-color:#ffffff80}
-:root[data-theme=dark] .public-theme header{background:rgba(30,28,33,.48);border-color:#ffffff40}
+.login-page header{background:rgba(255,255,255,.78);border-color:#ffffff80}
+:root[data-theme=dark] .login-page header{background:rgba(30,28,33,.48);border-color:#ffffff40}
 .public-theme:not(.login-page){height:100dvh;overflow:hidden}
 .public-theme:not(.login-page) .page{height:100dvh;min-height:0;overflow:hidden}
 .public-theme:not(.login-page) .hero{min-height:0}

@@ -1,0 +1,21 @@
+/* Landing page theme layer.
+   Loaded after theme.css so it owns the landing header.
+   The InternPulse wordmark (assets/logo-transparent.png) is dark ink on a transparent
+   background, so the band it sits on has to stay light in both themes. The old dark,
+   48%-transparent band left the wordmark readable only through a 1px white glow
+   filter, which made the header look like it came and went with the video behind it. */
+body.landing-page.public-theme header{
+  flex-wrap:nowrap;
+  background:linear-gradient(120deg,#fffffff2,#ffffffe0);
+  border:1px solid rgba(38,37,52,.12);
+  box-shadow:0 10px 28px rgba(38,37,52,.12);
+  backdrop-filter:blur(18px) saturate(130%);
+  -webkit-backdrop-filter:blur(18px) saturate(130%);
+}
+:root[data-theme=dark] body.landing-page.public-theme header{
+  background:linear-gradient(120deg,rgba(255,255,255,.96),rgba(255,255,255,.86));
+  border-color:rgba(255,255,255,.55);
+  box-shadow:0 12px 34px rgba(0,0,0,.45);
+}
+/* The white drop shadow exists to make the dark wordmark read on the old dark band. */
+:root[data-theme=dark] body.landing-page.public-theme header .logo img{filter:none}
