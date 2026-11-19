@@ -125,6 +125,29 @@ app still serves pages — it just silently stops sending mail and reminders.
 | `QUEUE_CONNECTION` | `database` in production — requires the worker from step 5. |
 | `MAIL_*` | Real mailer required for invitations and password resets. |
 | `SESSION_DRIVER` | `database` by default; sessions end up in your backups. |
+| `SESSION_SECURE_COOKIE` | `true` in production — the session cookie must not travel over http. |
+| `TRUSTED_PROXIES` | Comma-separated proxy IPs, or `*`, when nginx/Cloudflare sits in front. Without it every request looks like it came from the proxy, so throttling and audit logs are useless. |
+
+### Response headers
+
+Every web response carries a `SecurityHeaders` middleware policy: a
+`Content-Security-Policy` with a per-response nonce, `X-Frame-Options: DENY`,
+`nosniff`, a referrer policy, a permissions policy, and HSTS once the request
+arrives over TLS.
+
+Two consequences for future work:
+
+- **A new inline `<script>` needs `nonce="{{ $cspNonce }}"`** or the browser
+  silently refuses to run it. `tests/Feature/SecurityHeadersTest.php` fails when a
+  Blade view gains one without the nonce.
+- The policy lists the external hosts the pages load today (Google Fonts, cdnjs,
+  the sign-in hero clip). Adding another third-party asset means editing
+  `app/Http/Middleware/SecurityHeaders.php` — which is the point: the list is
+  visible in one place. Self-hosting those assets would let it shrink to `'self'`.
+
+The static landing page (`public/landing/index.html`) is served by the web server
+directly, so it does not pass through the middleware; add the same headers in the
+nginx `location` block if you need them there.
 
 ## Layout
 

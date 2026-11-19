@@ -10,7 +10,7 @@
 <form method="post" action="{{ route('login.two-factor.cancel') }}">@csrf<button type="submit" class="login-home link-button" data-en="← Back to sign in" data-ms="← Kembali ke log masuk">← Back to sign in</button></form>
 <p class="help" data-en="Lost your device? Use a recovery code, or ask Management to reset two-factor for you." data-ms="Peranti hilang? Guna kod pemulihan, atau minta Pengurusan menetapkan semula dua faktor anda.">Lost your device? Use a recovery code, or ask Management to reset two-factor for you.</p>
 </section></main><div class="bottom"><span>© InternPulse · Appvolusi Sdn. Bhd.</span></div></div>
-<script>
+<script nonce="{{ $cspNonce }}">
 let lang='en';try{lang=localStorage.getItem('internpulse-language')==='ms'?'ms':'en'}catch{}
 function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(function(el){el.textContent=el.dataset[lang]});document.querySelectorAll('[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.lang===lang))});}
 document.querySelectorAll('[data-lang]').forEach(function(b){b.onclick=function(){lang=b.dataset.lang;try{localStorage.setItem('internpulse-language',lang)}catch(e){}translate()}});
