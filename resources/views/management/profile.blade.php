@@ -25,5 +25,17 @@
 </div><p class="muted">{{ $t('Contact management to update your supervisor, department, dates or status.','Hubungi management untuk mengubah penyelia, jabatan, tarikh atau status.') }}</p>
 @endif
 <button class="primary-button">{{ $t('Save profile','Simpan profil') }}</button></form></section>
+<section class="glass panel" id="reminders">
+<h2>{{ $t('Reminder emails','E-mel peringatan') }}</h2>
+<p class="muted">{{ $t('Reminders always appear in the bell. Choose whether they also reach your email — in-app notices keep arriving either way.','Peringatan sentiasa muncul dalam loceng. Pilih sama ada ia turut dihantar ke e-mel anda — notifikasi dalam aplikasi tetap diterima.') }}</p>
+<form method="post" action="{{ route('profile.reminders') }}">@csrf
+<div class="form-grid">
+@if($person->role === 'intern')
+<label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" name="email_logbook_reminders" value="1" @checked($person->email_logbook_reminders) style="width:auto;margin-top:4px"><span>{{ $t('Logbook reminder — weekdays 5:30pm','Peringatan buku log — hari bekerja 5:30 petang') }}<small class="muted"> {{ $t('Sent only on days you have not logged anything.','Dihantar hanya pada hari anda belum mencatat apa-apa.') }}</small></span></label>
+@endif
+<label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" name="email_task_reminders" value="1" @checked($person->email_task_reminders) style="width:auto;margin-top:4px"><span>{{ $person->role === 'intern' ? $t('Overdue task reminder — weekdays 9am','Peringatan tugasan lewat — hari bekerja 9 pagi') : $t('Daily overdue digest — weekdays 9am','Ringkasan tugasan lewat — hari bekerja 9 pagi') }}<small class="muted"> {{ $person->role === 'intern' ? $t('Sent when one of your tasks is past its due date.','Dihantar apabila tugasan anda melepasi tarikh akhir.') : $t('One email listing the overdue tasks in your team.','Satu e-mel menyenaraikan tugasan lewat dalam pasukan anda.') }}</small></span></label>
+</div>
+<button class="primary-button">{{ $t('Save reminder settings','Simpan tetapan peringatan') }}</button>
+</form></section>
 @include('management.profile-security')
 @endsection

@@ -31,6 +31,7 @@ Route::post('/login/two-factor/cancel', [TwoFactorChallengeController::class, 'd
 Route::middleware(['auth', EnsureActiveAccount::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/reminders', [ProfileController::class, 'reminders'])->middleware('throttle:10,1')->name('profile.reminders');
     Route::post('/profile/password', [ProfileSecurityController::class, 'password'])->middleware('throttle:10,1')->name('profile.password');
     Route::post('/profile/two-factor', [ProfileSecurityController::class, 'start'])->middleware('throttle:10,1')->name('profile.two-factor.start');
     Route::post('/profile/two-factor/cancel', [ProfileSecurityController::class, 'cancel'])->name('profile.two-factor.cancel');
