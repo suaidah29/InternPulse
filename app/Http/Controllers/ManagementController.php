@@ -137,4 +137,9 @@ class ManagementController extends Controller
 
         return to_route('management.dashboard')->with($failed ? 'warning' : 'success', "{$sent} invitations submitted; {$failed} not sent. / {$sent} jemputan dihantar; {$failed} tidak dihantar.");
     }
+
+    public function activity(): View
+    {
+        return view('management.activity', ['activity' => DB::table('management_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->select('a.*', 'u.name as actor')->orderByDesc('a.id')->paginate(30)]);
+    }
 }
