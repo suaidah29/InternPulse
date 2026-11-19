@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Mail\SupervisorInvitationMail;
+use App\Jobs\SendSupervisorInvitation;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -44,13 +43,23 @@ class SupervisorInvitations
 
             return $id;
         });
+        // Queued: the invitation row is marked "queued" now and the job flips it to
+        // "sent" (or "failed") once the mail server has actually answered.
+        DB::table('supervisor_invitations')->where('id', $id)->update(['delivery_status' => 'queued']);
+
         try {
-            Mail::to($email)->send(new SupervisorInvitationMail($data['name'], $data['department'], route('invitation.show', ['token' => $token]), $role));
-            DB::table('supervisor_invitations')->where('id', $id)->where('token_hash', hash('sha256', $token))->update(['delivery_status' => 'sent', 'sent_at' => now()]);
+            SendSupervisorInvitation::dispatch(
+                $id,
+                $email,
+                $data['name'],
+                $data['department'],
+                route('invitation.show', ['token' => $token]),
+                $role,
+            );
 
             return true;
         } catch (\Throwable $error) {
-            DB::table('supervisor_invitations')->where('id', $id)->where('token_hash', hash('sha256', $token))->update(['delivery_status' => 'failed']);
+            DB::table('supervisor_invitations')->where('id', $id)->update(['delivery_status' => 'failed']);
             logger()->warning('Supervisor invitation mail failed', ['invitation_id' => $id, 'exception' => get_class($error)]);
 
             return false;

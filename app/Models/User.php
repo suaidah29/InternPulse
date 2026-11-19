@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -68,5 +69,13 @@ class User extends Authenticatable
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ])->save();
+    }
+
+    /**
+     * Queued reset link instead of the framework's synchronous notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

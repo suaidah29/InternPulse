@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -51,7 +51,7 @@ class WorkflowExperienceTest extends TestCase
         $this->get(route('login'))->assertOk()->assertSee('Forgot password');
         $this->get(route('password.request'))->assertOk();
         $this->post(route('password.email'), ['email' => $user->email])->assertSessionHas('success');
-        $mail = Notification::sent($user, ResetPassword::class)->first();
+        $mail = Notification::sent($user, ResetPasswordNotification::class)->first();
         $this->assertNotNull($mail);
         $this->get(route('password.reset', ['token' => $mail->token, 'email' => $user->email]))->assertOk();
         $data = ['email' => $user->email, 'token' => $mail->token, 'password' => 'UpdatedPassword!123', 'password_confirmation' => 'UpdatedPassword!123'];
