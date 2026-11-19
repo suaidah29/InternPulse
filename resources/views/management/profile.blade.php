@@ -5,13 +5,22 @@
 <section class="glass panel">
 @include('management.notices')
 <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data">@csrf
-<div class="form-grid"><label>{{ $t('Full name','Nama penuh') }}<input name="name" value="{{ old('name',$person->name) }}" required maxlength="255"></label><label>Email<input type="email" name="email" value="{{ old('email',$person->email) }}" required></label>
-<label>{{ $t('Current password (required to change email)','Kata laluan semasa (wajib untuk tukar e-mel)') }}<input type="password" name="current_password" autocomplete="current-password"></label>
+<div class="form-grid"><label>{{ $t('Full name','Nama penuh') }}<input name="name" value="{{ old('name',$person->name) }}" required maxlength="255"></label><div><strong>Email</strong><p>{{ $person->email }}</p></div>
 @foreach(['photo'=>'Profile picture / Gambar profil','signature'=>'Signature / Tandatangan'] as $kind=>$label)
 @if($kind==='photo'||$person->role!=='intern')<div><label>{{ $label }}<input type="file" name="{{ $kind }}" accept="image/png,image/jpeg,image/webp"></label><small>PNG, JPG, WebP · Max 2 MB</small>
 @if($kind==='signature')<p class="muted">{{ $t('A light background is removed automatically. Use dark ink on plain white paper and check the result after saving.','Latar cerah dibuang secara automatik. Gunakan dakwat gelap pada kertas putih dan semak hasil selepas simpan.') }}</p>@endif
 @if($person->{$kind.'_path'})<div><img src="{{ route('profile.image',$kind) }}" alt="{{ $label }}" style="max-width:220px;max-height:100px;border-radius:12px;background:white;padding:8px"></div>@endif</div>@endif
 @endforeach</div>
+{{-- The password box lives in the Sign-in security card; this one only appears when the
+     email is actually being changed, so the page does not ask for the password twice. --}}
+<details class="email-change" @if(old('email') !== null && old('email') !== $person->email) open @endif>
+<summary>{{ $t('Change email address','Tukar alamat e-mel') }}</summary>
+<div class="form-grid">
+<label>Email<input type="email" name="email" value="{{ old('email',$person->email) }}" maxlength="255"></label>
+<label>{{ $t('Current password','Kata laluan semasa') }}<input type="password" name="current_password" autocomplete="current-password"></label>
+</div>
+<p class="muted">{{ $t('Your password is only needed when the email address changes.','Kata laluan hanya diperlukan apabila alamat e-mel ditukar.') }}</p>
+</details>
 @if($person->role === 'intern')
 <h2>{{ $t('Internship details','Maklumat latihan industri') }}</h2>
 <div class="form-grid">
