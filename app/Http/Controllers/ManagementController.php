@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +48,7 @@ class ManagementController extends Controller
 
     public function resend(Request $request, int $invitation, SupervisorInvitations $service): RedirectResponse
     {
+        Gate::authorize('invitation.resend');
         $row = DB::table('supervisor_invitations')->where('id', $invitation)->first();
         abort_if(! $row, 404);
         abort_if($row->accepted_at, 409);
@@ -57,6 +59,7 @@ class ManagementController extends Controller
 
     public function revoke(Request $request, int $invitation): RedirectResponse
     {
+        Gate::authorize('invitation.revoke');
         DB::transaction(function () use ($request, $invitation): void {
             $row = DB::table('supervisor_invitations')->where('id', $invitation)->lockForUpdate()->first();
             abort_if(! $row, 404);
@@ -135,5 +138,3 @@ class ManagementController extends Controller
         return to_route('management.dashboard')->with($failed ? 'warning' : 'success', "{$sent} invitations submitted; {$failed} not sent. / {$sent} jemputan dihantar; {$failed} tidak dihantar.");
     }
 }
-
-

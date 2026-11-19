@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\SignatureBackgroundRemover;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProfileController extends Controller
@@ -16,7 +19,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $person = $request->user();
-        $supervisor = $person->role === 'intern' ? \App\Models\User::find($person->supervisor_id)?->name : null;
+        $supervisor = $person->role === 'intern' ? User::find($person->supervisor_id)?->name : null;
 
         return view('management.profile', compact('person', 'supervisor'));
     }
@@ -52,7 +55,7 @@ class ProfileController extends Controller
         if ($request->hasFile('signature')) {
             try {
                 $user->signature_path = $signatureBackgroundRemover->store($request->file('signature'), $user->id);
-            } catch (\Illuminate\Validation\ValidationException $error) {
+            } catch (ValidationException $error) {
                 return to_route('profile.edit')->withErrors($error->errors())->withInput($request->except(['current_password', 'photo', 'signature']));
             }
         }
@@ -89,7 +92,9 @@ class ProfileController extends Controller
     public function image(Request $request, string $kind): Response
     {
         abort_unless(in_array($kind, ['photo', 'signature']), 404);
-        abort_if($kind === 'signature' && $request->user()->role === 'intern', 403);
+        if ($kind === 'signature') {
+            Gate::authorize('signature', $request->user());
+        }
         $path = $request->user()->{$kind.'_path'};
         abort_unless($path && Storage::disk('local')->exists($path), 404);
 

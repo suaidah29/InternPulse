@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SupervisorInvitations;
+use App\Models\User;
 use App\Services\DocumentPreview;
 use App\Services\InternshipProgress;
 use App\Services\LogStreak;
+use App\Services\SupervisorInvitations;
 use App\Services\TaskStatus;
 use App\Services\TeamScope;
 use App\Services\WorkspaceActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -24,7 +27,7 @@ class WorkspaceController extends Controller
 {
     public function overview(Request $r): View
     {
-        abort_unless(in_array($r->user()->role, ['intern', 'supervisor']), 403);
+        Gate::authorize('workspace.overview');
         $supervising = $r->user()->role === 'supervisor';
         $ids = $supervising ? DB::table('users')->where('role', 'intern')->where('supervisor_id', $r->user()->id)->pluck('id')->all() : [$r->user()->id];
         $today = now('Asia/Kuala_Lumpur')->toDateString();
@@ -77,11 +80,6 @@ class WorkspaceController extends Controller
         return $this->tasksQuery($r)->where('id', $id)->firstOrFail();
     }
 
-    private function reviewer(Request $r, int $userId): void
-    {
-        abort_unless(in_array($r->user()->role, ['superadmin', 'supervisor']) && in_array($userId, $this->teamIds($r)) && ($r->user()->role === 'superadmin' || $userId !== $r->user()->id), 403);
-    }
-
     private function members(Request $r): array
     {
         return DB::table('users')->whereIn('id', $this->teamIds($r))->whereIn('role', ['intern', 'supervisor'])->where('is_active', true)->orderBy('name')->get()->all();
@@ -100,7 +98,7 @@ class WorkspaceController extends Controller
 
     public function team(Request $r): View
     {
-        abort_unless($r->user()->role === 'supervisor', 403);
+        Gate::authorize('workspace.team');
 
         return view('management.team', ['people' => DB::table('users')->where('role', 'intern')->where('supervisor_id', $r->user()->id)->when($r->query('q'), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$r->query('q').'%')->orWhere('email', 'like', '%'.$r->query('q').'%')))->orderBy('name')->paginate(15)->withQueryString()]);
     }
@@ -108,7 +106,8 @@ class WorkspaceController extends Controller
     /** Escape hatch for a lost phone with no recovery codes left: only a superadmin can clear it. */
     public function resetTwoFactor(Request $r, int $id): RedirectResponse
     {
-        $person = DB::table('users')->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();
+        $person = User::query()->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();
+        Gate::authorize('resetTwoFactor', $person);
         abort_unless($person->two_factor_confirmed_at, 409, 'This account does not use two-factor authentication.');
 
         DB::table('users')->where('id', $id)->update([
@@ -129,7 +128,8 @@ class WorkspaceController extends Controller
 
     public function updatePerson(Request $r, int $id): RedirectResponse
     {
-        $person = DB::table('users')->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();
+        $person = User::query()->where('id', $id)->whereIn('role', ['supervisor', 'intern'])->firstOrFail();
+        Gate::authorize('update', $person);
         $data = $r->validate(['name' => 'required|string|max:255', 'department' => ['required', Rule::exists('departments', 'name')], 'supervisor_id' => [$person->role === 'intern' ? 'required' : 'nullable', 'integer', Rule::exists('users', 'id')->where('role', 'supervisor')->where('is_active', true)], 'is_active' => 'required|boolean']);
         if ($person->role === 'intern') {
             $sv = DB::table('users')->where('id', $data['supervisor_id'])->first();
@@ -161,7 +161,8 @@ class WorkspaceController extends Controller
 
     public function updateInternship(Request $r, int $id): RedirectResponse
     {
-        $person = DB::table('users')->where('role', 'intern')->where('id', $id)->firstOrFail();
+        $person = User::query()->where('role', 'intern')->where('id', $id)->firstOrFail();
+        Gate::authorize('updateInternship', $person);
         $data = $r->validate([
             'university' => 'nullable|string|max:255',
             'course' => 'nullable|string|max:255',
@@ -180,9 +181,7 @@ class WorkspaceController extends Controller
     public function inviteIntern(Request $r, SupervisorInvitations $service): RedirectResponse
     {
         $data = $r->validate(['name' => 'required|string|max:255', 'email' => 'required|email:rfc|max:255', 'supervisor_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'supervisor')->where('is_active', true)]]);
-        if ($r->user()->role === 'supervisor') {
-            abort_unless((int) $data['supervisor_id'] === $r->user()->id, 403);
-        }
+        Gate::authorize('invitation.invite', $data['supervisor_id']);
         $sv = DB::table('users')->where('id', $data['supervisor_id'])->first();
         if (! $sv->department) {
             throw ValidationException::withMessages(['supervisor_id' => 'Assign a department to this supervisor first. / Tetapkan jabatan penyelia dahulu.']);
@@ -201,6 +200,7 @@ class WorkspaceController extends Controller
 
     public function saveDepartment(Request $r, ?int $id = null): RedirectResponse
     {
+        Gate::authorize('department.save');
         $data = $r->validate(['name' => ['required', 'string', 'max:100', Rule::unique('departments', 'name')->ignore($id)]]);
         DB::transaction(function () use ($r, $id, $data): void {
             if ($id) {
@@ -218,6 +218,7 @@ class WorkspaceController extends Controller
 
     public function deleteDepartment(Request $r, int $id): RedirectResponse
     {
+        Gate::authorize('department.delete');
         $d = DB::table('departments')->where('id', $id)->firstOrFail();
         foreach (['users', 'supervisor_invitations', 'work_tasks', 'intern_guides'] as $table) {
             if (DB::table($table)->where('department', $d->name)->exists()) {
@@ -259,7 +260,7 @@ class WorkspaceController extends Controller
     {
         $task = $this->task($r, $id);
 
-        return view('management.task-detail', ['blockers' => DB::table('task_blockers')->where('task_id', $id)->orderByDesc('id')->get(), 'members' => $this->members($r), 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to'), 'canAssign' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id, 'task' => $task, 'owner' => DB::table('users')->find($task->assigned_to), 'files' => DB::table('work_files')->where('task_id', $id)->get(), 'history' => DB::table('task_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->where('a.task_id', $id)->select('a.*', 'u.name')->orderByDesc('a.id')->paginate(15), 'canReview' => $r->user()->role !== 'intern' && $task->assigned_to !== $r->user()->id]);
+        return view('management.task-detail', ['blockers' => DB::table('task_blockers')->where('task_id', $id)->orderByDesc('id')->get(), 'members' => $this->members($r), 'workload' => $this->tasksQuery($r)->whereNull('archived_at')->where('status', '!=', 'completed')->selectRaw('assigned_to, count(*) as total')->groupBy('assigned_to')->pluck('total', 'assigned_to'), 'canAssign' => Gate::allows('task.assign', $task), 'task' => $task, 'owner' => DB::table('users')->find($task->assigned_to), 'files' => DB::table('work_files')->where('task_id', $id)->get(), 'history' => DB::table('task_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->where('a.task_id', $id)->select('a.*', 'u.name')->orderByDesc('a.id')->paginate(15), 'canReview' => Gate::allows('task.decide', $task)]);
     }
 
     public function comment(Request $r, int $id): RedirectResponse
@@ -277,8 +278,8 @@ class WorkspaceController extends Controller
         $data = $r->validate(['decision' => ['required', Rule::in(['completed', 'in_progress'])], 'comment' => 'required|string|min:3|max:4000']);
         DB::transaction(function () use ($r, $id, $data): void {
             $task = $this->tasksQuery($r)->where('id', $id)->lockForUpdate()->firstOrFail();
-            $this->reviewer($r, $task->assigned_to);
-            abort_if($task->assigned_to === $r->user()->id || $task->archived_at || $task->status !== 'review', 409);
+            Gate::authorize('task.decide', $task);
+            abort_if($task->archived_at || $task->status !== 'review', 409);
             DB::table('work_tasks')->where('id', $id)->update(['status' => $data['decision'], 'completed_at' => $data['decision'] === 'completed' ? now() : null, 'updated_at' => now()]);
             WorkspaceActivity::record($task, $r->user()->id, $data['decision'] === 'completed' ? 'approved' : 'changes_requested', $data['comment']);
         });
@@ -300,9 +301,8 @@ class WorkspaceController extends Controller
 
     public function saveTask(Request $r, ?int $id = null): RedirectResponse
     {
-        abort_if($r->user()->role === 'intern', 403);
         $old = $id ? $this->task($r, $id) : null;
-        abort_if($old && $old->assigned_to === $r->user()->id && $r->user()->role === 'supervisor', 403);
+        $old ? Gate::authorize('task.update', $old) : Gate::authorize('task.create');
         $data = $r->validate(['title' => 'required|string|max:180', 'description' => 'nullable|string|max:10000', 'assigned_to' => ['required', 'integer', Rule::in(array_map(fn ($m) => $m->id, $this->members($r)))], 'priority' => ['required', Rule::in(['normal', 'urgent'])], 'status' => ['required', Rule::in(['todo', 'in_progress', 'review', 'completed'])], 'due_date' => 'nullable|date_format:Y-m-d', 'category' => 'nullable|string|max:100']);
         if ($data['status'] === 'completed' && ($old?->status !== 'completed' || (int) $data['assigned_to'] !== $old->assigned_to)) {
             throw ValidationException::withMessages(['status' => 'Use Approve completion on the task review. / Gunakan Sahkan selesai pada semakan tugasan.']);
@@ -323,19 +323,19 @@ class WorkspaceController extends Controller
 
     public function archiveTask(Request $r, int $id): RedirectResponse
     {
-        abort_if($r->user()->role === 'intern', 403);
         $task = $this->task($r, $id);
+        Gate::authorize('task.archive', $task);
         DB::table('work_tasks')->where('id', $id)->update(['archived_at' => $task->archived_at ? null : now(), 'updated_at' => now()]);
         $this->audit($r, 'task.archive_changed', $task->title);
 
         return back()->with('success', 'Task archive updated. / Arkib tugasan dikemas kini.');
     }
 
-    public function progress(Request $r, int $id): RedirectResponse|\Illuminate\Http\JsonResponse
+    public function progress(Request $r, int $id): RedirectResponse|JsonResponse
     {
         $task = $this->task($r, $id);
         abort_if($task->archived_at || $task->status === 'completed', 409);
-        abort_unless($task->assigned_to === $r->user()->id, 403);
+        Gate::authorize('task.progress', $task);
         $data = $r->validate(['status' => ['required', Rule::in(['todo', 'in_progress', 'review'])], 'progress_note' => 'nullable|string|max:10000', 'work_url' => 'nullable|url:http,https|max:2000', 'evidence' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,docx|max:10240']);
         unset($data['evidence']);
         $data['completed_at'] = null;
@@ -357,7 +357,7 @@ class WorkspaceController extends Controller
     public function requestDue(Request $r, int $id): RedirectResponse
     {
         $task = $this->task($r, $id);
-        abort_unless($task->assigned_to === $r->user()->id && ! $task->archived_at && $task->status !== 'completed', 403);
+        abort_unless(Gate::allows('task.requestDue', $task) && ! $task->archived_at && $task->status !== 'completed', 403);
         $data = $r->validate(['requested_date' => 'required|date_format:Y-m-d|after_or_equal:'.now('Asia/Kuala_Lumpur')->toDateString(), 'reason' => 'required|string|min:20|max:2000']);
         DB::transaction(function () use ($r, $id, $data): void {
             DB::table('work_tasks')->where('id', $id)->lockForUpdate()->first();
@@ -373,7 +373,7 @@ class WorkspaceController extends Controller
 
     public function reviews(Request $r): View
     {
-        abort_if($r->user()->role === 'intern', 403);
+        Gate::authorize('workspace.reviews');
         $ids = $this->teamIds($r);
         $taskIds = $this->tasksQuery($r)->when($r->user()->role === 'supervisor', fn ($q) => $q->where('assigned_to', '!=', $r->user()->id))->pluck('id');
 
@@ -382,7 +382,7 @@ class WorkspaceController extends Controller
 
     public function review(Request $r, string $type, int $id): RedirectResponse
     {
-        abort_if($r->user()->role === 'intern', 403);
+        Gate::authorize('workspace.reviews');
         $table = ['due' => 'due_date_requests', 'attendance' => 'attendance_records'][$type] ?? null;
         abort_if(! $table, 404);
         $data = $r->validate(['decision' => ['required', Rule::in(['approved', 'rejected'])], 'note' => 'nullable|string|max:2000']);
@@ -393,7 +393,7 @@ class WorkspaceController extends Controller
             $row = DB::table($table)->where('id', $id)->lockForUpdate()->firstOrFail();
             abort_unless($row->status === 'pending', 409);
             $uid = $type === 'due' ? $row->requested_by : $row->user_id;
-            $this->reviewer($r, $uid);
+            Gate::authorize($type === 'due' ? 'dueRequest.decide' : 'attendance.decide', $row);
             $column = $type === 'attendance' ? 'note' : 'review_note';
             DB::table($table)->where('id', $id)->update(['status' => $data['decision'], $column => ($data['note'] ?? null), 'reviewed_by' => $r->user()->id, 'updated_at' => now()]);
             if ($type === 'due' && $data['decision'] === 'approved') {
@@ -417,7 +417,7 @@ class WorkspaceController extends Controller
 
     public function checkIn(Request $r): RedirectResponse
     {
-        abort_unless($r->user()->role === 'intern', 403);
+        Gate::authorize('attendance.record');
         $r->validate(['photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
         $date = now('Asia/Kuala_Lumpur')->toDateString();
         if (DB::table('attendance_records')->where('user_id', $r->user()->id)->where('attendance_date', $date)->exists()) {
@@ -446,6 +446,7 @@ class WorkspaceController extends Controller
 
     public function saveGuide(Request $r, ?int $id = null): RedirectResponse
     {
+        Gate::authorize('guide.save');
         $data = $r->validate(['title' => 'required|string|max:180', 'department' => ['nullable', Rule::exists('departments', 'name')], 'body' => 'required|string|max:20000', 'file' => 'nullable|file|mimes:pdf,docx,jpg,jpeg,png,webp|max:10240']);
         unset($data['file']);
         if ($id) {
@@ -465,6 +466,7 @@ class WorkspaceController extends Controller
 
     public function deleteGuide(Request $r, int $id): RedirectResponse
     {
+        Gate::authorize('guide.delete');
         $guide = DB::table('intern_guides')->where('id', $id)->firstOrFail();
         DB::table('intern_guides')->where('id', $id)->delete();
         $this->audit($r, 'guide.deleted', $guide->title);
@@ -481,12 +483,12 @@ class WorkspaceController extends Controller
             $name = $file->original_name;
         } elseif ($type === 'attendance') {
             $file = DB::table('attendance_records')->where('id', $id)->firstOrFail();
-            abort_unless(in_array($file->user_id, $this->teamIds($r)), 403);
+            Gate::authorize('attendance.viewFile', $file);
             $path = $file->photo_path;
             $name = 'attendance-'.basename($path);
         } elseif ($type === 'guide') {
             $file = DB::table('intern_guides')->where('id', $id)->firstOrFail();
-            abort_unless($r->user()->role === 'superadmin' || ! $file->department || $file->department === $r->user()->department, 403);
+            Gate::authorize('guide.download', $file);
             $path = $file->file_path;
             $name = $file->file_name;
         } else {
@@ -530,5 +532,3 @@ class WorkspaceController extends Controller
         return view('management.activity', ['activity' => DB::table('management_activity as a')->join('users as u', 'u.id', '=', 'a.actor_id')->select('a.*', 'u.name as actor')->orderByDesc('a.id')->paginate(30)]);
     }
 }
-
-

@@ -3,18 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Services\WorkspaceActivity;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InternSupportController extends Controller
 {
     public function showEvaluations(Request $request, int $id): View
     {
         $intern = DB::table('users')->where('id', $id)->where('role', 'intern')->firstOrFail();
-        abort_unless($request->user()->role === 'superadmin' || ($request->user()->role === 'supervisor' && (int) $intern->supervisor_id === (int) $request->user()->id) || ($request->user()->role === 'intern' && (int) $intern->id === (int) $request->user()->id), 403);
+        Gate::authorize('evaluation.view', $intern);
         $evaluations = DB::table('intern_evaluations')->where('intern_id', $id)->orderBy('period')->get();
 
         return view('management.evaluations', compact('intern', 'evaluations'));
@@ -22,13 +24,13 @@ class InternSupportController extends Controller
 
     public function createBlocker(Request $request, int $id): RedirectResponse
     {
-        abort_unless($request->user()->role === 'intern', 403);
+        Gate::authorize('blocker.create');
         $data = $request->validate(['category' => ['required', Rule::in(['access', 'clarification', 'other'])], 'description' => 'required|string|max:2000']);
         DB::transaction(function () use ($request, $id, $data): void {
             $task = DB::table('work_tasks')->where('id', $id)->where('assigned_to', $request->user()->id)->lockForUpdate()->firstOrFail();
             abort_if($task->archived_at || $task->status === 'completed', 409);
             if (DB::table('task_blockers')->where('task_id', $id)->where('status', 'open')->exists()) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['description' => 'A help request is already open. / Permintaan bantuan masih terbuka.']);
+                throw ValidationException::withMessages(['description' => 'A help request is already open. / Permintaan bantuan masih terbuka.']);
             }
             DB::table('task_blockers')->insert($data + ['task_id' => $id, 'intern_id' => $request->user()->id, 'created_at' => now(), 'updated_at' => now()]);
             WorkspaceActivity::record($task, $request->user()->id, 'help_requested', $data['description']);
@@ -43,8 +45,7 @@ class InternSupportController extends Controller
         $taskId = DB::transaction(function () use ($request, $id, $data): int {
             $blocker = DB::table('task_blockers')->where('id', $id)->lockForUpdate()->firstOrFail();
             $task = DB::table('work_tasks')->where('id', $blocker->task_id)->firstOrFail();
-            $intern = DB::table('users')->where('id', $task->assigned_to)->where('role', 'intern')->first();
-            abort_unless($intern && (int) $blocker->intern_id === (int) $intern->id && ($request->user()->role === 'superadmin' || ($request->user()->role === 'supervisor' && (int) $intern->supervisor_id === (int) $request->user()->id)), 403);
+            Gate::authorize('blocker.resolve', $blocker);
             abort_unless($blocker->status === 'open' && ! $task->archived_at && $task->status !== 'completed', 409);
             DB::table('task_blockers')->where('id', $id)->update(['status' => 'resolved', 'resolution' => $data['resolution'], 'resolved_by' => $request->user()->id, 'resolved_at' => now(), 'updated_at' => now()]);
             WorkspaceActivity::record($task, $request->user()->id, 'help_resolved', $data['resolution']);
@@ -57,7 +58,8 @@ class InternSupportController extends Controller
 
     public function evaluation(Request $request, int $id): RedirectResponse
     {
-        abort_unless($request->user()->role === 'supervisor', 403);
+        // Loaded through "supervisor_id = me" on purpose: another supervisor's intern
+        // is a 404, which does not advertise that the account exists.
         DB::table('users')->where('id', $id)->where('role', 'intern')->where('supervisor_id', $request->user()->id)->firstOrFail();
         $data = $request->validate(['period' => ['required', Rule::in(['midpoint', 'final'])], 'quality' => 'required|integer|between:1,5', 'communication' => 'required|integer|between:1,5', 'teamwork' => 'required|integer|between:1,5', 'feedback' => 'required|string|max:4000']);
         $existing = DB::table('intern_evaluations')->where('intern_id', $id)->where('period', $data['period'])->first();

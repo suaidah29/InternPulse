@@ -178,7 +178,12 @@ app/Http/Controllers/   WorkspaceController (intern + management), ManagementCon
                         LogbookController, ProfileController, ProfileSecurityController,
                         PasswordRecoveryController, InvitationController, auth/*
 app/Services/           Business rules: TaskStatus, Reminders, TwoFactor, PasswordPolicy,
-                        SupervisorInvitations
+                        SupervisorInvitations, TeamScope (who is in whose team)
+app/Policies/           Who may do what. Subjects are query-builder rows, so each policy
+                        publishes the ability names it answers to and
+                        Providers/AuthorizationServiceProvider registers them with the Gate:
+                        `Gate::authorize('task.decide', $task)`. UserPolicy is found by
+                        convention because its subject is an Eloquent model
 app/Console/Commands/   logbook:remind, tasks:overdue
 public/                 Hand-written CSS (landing/*, management.css, theme.css,
                         workspace-ui.css, then feature files, with ui-polish.css loaded last —
@@ -187,6 +192,16 @@ resources/views/        Blade views; the shared shell is management/shell.blade.
                         page title band is components/page-header.blade.php
 routes/                 web.php, console.php (schedule)
 ```
+
+## Authorization
+
+Every decision goes through `app/Policies/`. Controllers may still answer `404` for a
+row outside the caller's team (a scoped `firstOrFail`, which does not confirm that the
+row exists) and `409` for a row in the wrong state, but the rule itself — *may this
+account act on this person's work* — lives in one place per subject.
+
+`tests/Feature/AuthorizationPolicyTest.php` asserts the matrix per role through the
+Gate, so changing a rule means arguing with that file.
 
 ## Known gaps
 
