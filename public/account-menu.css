@@ -4,21 +4,21 @@
 .account-menu>summary::-webkit-details-marker{display:none}
 .account-avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#d7193015;color:var(--accent);font:600 14px Inter,sans-serif;overflow:hidden;flex-shrink:0}
 .account-avatar img{width:100%;height:100%;object-fit:cover}
-.account-name{max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.account-name{max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-meta)}
 .account-dropdown{position:absolute;right:0;top:calc(100% + 10px);width:270px;max-width:calc(100vw - 32px);padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--surface-strong);box-shadow:0 12px 36px #0002;backdrop-filter:blur(24px)}
 .account-identity{padding:12px;border-bottom:1px solid var(--line);margin-bottom:5px;overflow-wrap:anywhere}
-.account-identity strong{display:block;font-size:13px;color:var(--ink)}
-.account-identity small{display:block;font-size:11px;color:var(--secondary);margin-top:5px}
+.account-identity strong{display:block;font-size:var(--text-sm);color:var(--ink)}
+.account-identity small{display:block;font-size:var(--text-meta);color:var(--secondary);margin-top:5px}
 .management-page .account-dropdown a,.management-page .account-dropdown button{display:flex;justify-content:space-between;width:100%;padding:12px;border:0;border-radius:9px;background:none;color:var(--ink);font:500 12px Inter,sans-serif;text-align:left;cursor:pointer;box-sizing:border-box}
 .management-page .account-dropdown form{margin:0}.management-page .account-dropdown button{color:var(--accent)}
 .account-dropdown a:hover,.account-dropdown button:hover{background:var(--soft)}
 .account-menu>summary:focus-visible,.account-dropdown a:focus-visible,.account-dropdown button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:760px){.account-name{display:none}}
+@media(max-width:720px){.account-name{display:none}}
 @media print{.account-menu{display:none}}
 .management-shell>header{position:sticky;top:8px;z-index:50;overflow:visible}
 .account-settings{padding:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0}
-.account-settings p{margin:0 0 10px;color:var(--ink);font-size:12px;font-weight:700}
-.account-settings-label{display:block;margin:10px 0 5px;color:var(--secondary);font-size:11px;font-weight:600}
+.account-settings p{margin:0 0 10px;color:var(--ink);font-size:var(--text-sm);font-weight:700}
+.account-settings-label{display:block;margin:10px 0 5px;color:var(--secondary);font-size:var(--text-label);font-weight:600}
 .account-settings .theme-switch,.account-settings .language-switch{display:flex;gap:3px;width:100%;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft);box-sizing:border-box}
 .management-page .account-settings .theme-switch button,.management-page .account-settings .language-switch button{display:block;flex:1;width:auto;padding:7px 4px;color:var(--secondary);text-align:center;border-radius:7px}
 .management-page .account-settings button[aria-pressed="true"]{background:var(--surface-strong);color:var(--ink);box-shadow:0 1px 5px #0002}

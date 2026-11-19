@@ -14,10 +14,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ $title }} · InternPulse</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset('landing/styles.css') }}?v=8">
-<link rel="stylesheet" href="{{ asset('landing/brand.css') }}?v=8">
-<link rel="stylesheet" href="{{ asset('management.css') }}?v=1">
-<link rel="stylesheet" href="{{ asset('theme.css') }}?v=10">
+<link rel="stylesheet" href="{{ asset('landing/styles.css') }}?v=9">
+<link rel="stylesheet" href="{{ asset('landing/brand.css') }}?v=9">
+<link rel="stylesheet" href="{{ asset('management.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('theme.css') }}?v=12">
 <style>
 .error-shell{position:relative;min-height:100vh;display:grid;place-items:center;padding:32px 20px}
 .error-card{position:relative;z-index:2;max-width:560px;width:100%;padding:40px clamp(24px,5vw,48px);border-radius:22px;background:rgba(255,255,255,.94);box-shadow:0 24px 60px rgba(38,37,52,.16);text-align:left}

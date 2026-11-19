@@ -8,7 +8,7 @@
 .management-page .management-shell>header .account-menu>summary{height:44px;min-height:44px;box-sizing:border-box}
 .management-page .management-shell>header .account-name{max-width:160px}
 .management-page .management-shell>header .notification-panel,.management-page .management-shell>header .account-dropdown{max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
-@media(max-width:760px){
+@media(max-width:720px){
  .management-page .management-shell>header{gap:10px;padding:12px;margin-bottom:20px;border-radius:16px;top:8px}
  .management-page .management-shell>header>.logo{flex-basis:130px;width:130px;margin-right:auto}
  .management-page .management-shell>header{flex-wrap:wrap}
@@ -47,7 +47,7 @@
 .management-page table{width:100%;border-collapse:collapse}
 .management-page td,.management-page th{text-align:left;vertical-align:top}
 .management-page td small{display:block;margin-top:3px}
-.management-page .pager{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;font-size:12px}
+.management-page .pager{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;font-size:var(--text-meta)}
 .management-page .notice{margin:0 0 18px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;line-height:1.6}
 .management-page .empty-state{padding:22px;border:1px dashed var(--line);border-radius:12px;line-height:1.7}
 .management-page .section-card details:not(.notification-menu):not(.account-menu){margin-top:16px}
@@ -64,7 +64,7 @@
 .management-page .notification-panel{max-width:calc(100vw - 24px)}
 .management-page .welcome-banner .welcome-copy{min-width:0}
 .management-page .welcome-banner .welcome-name{overflow-wrap:anywhere}
-@media(max-width:760px){
+@media(max-width:720px){
  .management-page .section-card,.management-page .panel{padding:18px 16px}
  .management-page .form-grid{grid-template-columns:1fr}
  .management-page .form-grid .wide{grid-column:auto}
@@ -74,7 +74,7 @@
  .management-page .notification-panel,.management-page .account-dropdown{max-width:calc(100vw - 24px)}
  .management-page .welcome-banner{min-height:0}
 }
-@media(max-width:420px){
+@media(max-width:480px){
  .management-page .metric-grid{grid-template-columns:1fr 1fr}
  .management-page .primary-button,.management-page .quiet-button{min-height:42px}
  .management-page .notification-panel{right:-62px;width:min(340px,calc(100vw - 24px))}
@@ -84,10 +84,10 @@
 
 /* Accessibility helpers */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.skip-link{position:absolute;left:12px;top:-60px;z-index:1000;padding:10px 16px;border-radius:10px;background:#cb1736;color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:top .15s ease}
+.skip-link{position:absolute;left:12px;top:-60px;z-index:1000;padding:10px 16px;border-radius:10px;background:#cb1736;color:#fff;font-size:var(--text-base);font-weight:600;text-decoration:none;transition:top .15s ease}
 .skip-link:focus,.skip-link:focus-visible{top:12px;outline:2px solid #fff;outline-offset:2px}
 .page-heading h2{font-size:clamp(23px,2.5vw,32px);letter-spacing:-.04em;line-height:1.2;margin:8px 0 12px;font-weight:700}
-@media (max-width:760px){.page-heading h2{font-size:25px}}
+@media(max-width:720px){.page-heading h2{font-size:25px}}
 
 /* ------------------------------------------------------------------
    Semantic status tokens
@@ -128,13 +128,13 @@
 .timeline-track{--weeks:12;position:relative;height:14px;border-radius:99px;background:var(--line);overflow:hidden}
 .timeline-track>span{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,var(--info-fill),var(--ok-fill));min-width:14px}
 .timeline-track::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(100% / var(--weeks) - 2px),var(--surface-strong) calc(100% / var(--weeks) - 2px),var(--surface-strong) calc(100% / var(--weeks)))}
-.timeline-ends{display:flex;justify-content:space-between;gap:12px;margin:10px 0 0;font-size:13px;color:var(--secondary)}
+.timeline-ends{display:flex;justify-content:space-between;gap:12px;margin:10px 0 0;font-size:var(--text-sm);color:var(--secondary)}
 .timeline-ends strong{color:inherit;font-weight:600}
 .timeline-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 0}
 .timeline-stats div{padding:10px 12px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
 .timeline-stats strong{display:block;font:700 20px/1.2 Manrope,Inter,sans-serif}
-.timeline-stats span{font-size:13px;color:var(--secondary)}
-.insight-note{margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--secondary)}
+.timeline-stats span{font-size:var(--text-sm);color:var(--secondary)}
+.insight-note{margin:14px 0 0;font-size:var(--text-base);line-height:1.6;color:var(--secondary)}
 .heatmap{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
 .heatmap-col{display:grid;grid-template-rows:repeat(7,1fr);gap:4px}
 .hm-cell{aspect-ratio:1;min-width:10px;border-radius:4px;background:var(--line)}
@@ -143,30 +143,30 @@
 .hm-cell.open,.hm-cell.weekend,.hm-cell.off,.hm-cell.future{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
 .hm-cell.off{opacity:.45}
 .hm-cell.today{outline:2px solid var(--ink);outline-offset:1px}
-.heatmap-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;font-size:13px;color:var(--secondary)}
+.heatmap-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;font-size:var(--text-sm);color:var(--secondary)}
 .heatmap-legend span{display:inline-flex;align-items:center;gap:6px}
 .heatmap-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--line)}
 .heatmap-legend i.logged{background:var(--ok-fill)}
 .heatmap-legend i.missed{background:transparent;box-shadow:inset 0 0 0 2px var(--danger-fill)}
-.streak-badge{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:600;background:var(--ok-tint);color:var(--ok-ink)}
+.streak-badge{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 12px;border-radius:99px;font-size:var(--text-sm);font-weight:600;background:var(--ok-tint);color:var(--ok-ink)}
 .streak-badge.idle{background:var(--soft);color:var(--secondary)}
-@media(max-width:900px){.intern-insights{grid-template-columns:1fr}}
+@media(max-width:1000px){.intern-insights{grid-template-columns:1fr}}
 @media(max-width:480px){.timeline-stats{grid-template-columns:1fr 1fr}.heatmap,.heatmap-col{gap:3px}}
 
 /* ------------------------------------------------------------------
    Task board (kanban)
    ------------------------------------------------------------------ */
 .view-toggle{display:inline-flex;padding:3px;border-radius:99px;background:var(--soft);border:1px solid var(--line);align-self:flex-start}
-.view-toggle a{display:inline-flex;align-items:center;min-height:36px;padding:0 16px;border-radius:99px;font-size:14px;font-weight:600;color:var(--secondary);text-decoration:none}
+.view-toggle a{display:inline-flex;align-items:center;min-height:36px;padding:0 16px;border-radius:99px;font-size:var(--text-base);font-weight:600;color:var(--secondary);text-decoration:none}
 .view-toggle a[aria-current]{background:var(--accent);color:#fff}
 :root[data-theme=dark] .view-toggle a[aria-current]{color:#2b1620}
-.kanban-help{margin:0 0 14px;font-size:14px}
+.kanban-help{margin:0 0 14px;font-size:var(--text-base)}
 .kanban-cols{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;align-items:start;overflow-x:auto;padding-bottom:8px}
 .kanban-col{border-radius:16px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--secondary);min-width:0}
 .kanban-col.tone-info{border-top-color:var(--info-fill)}.kanban-col.tone-warn{border-top-color:var(--warn-fill)}.kanban-col.tone-ok{border-top-color:var(--ok-fill)}
 .kanban-column-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--line)}
-.kanban-col h2{margin:0;font-size:15px}
-.kanban-count{min-width:26px;text-align:center;padding:2px 8px;border-radius:99px;font-size:13px;font-weight:600;background:var(--soft);color:var(--secondary)}
+.kanban-col h2{margin:0;font-size:var(--text-md)}
+.kanban-count{min-width:26px;text-align:center;padding:2px 8px;border-radius:99px;font-size:var(--text-sm);font-weight:600;background:var(--soft);color:var(--secondary)}
 .kanban-list{display:grid;align-content:start;gap:12px;padding:12px;min-height:220px;border-radius:12px;transition:background .15s}
 .kanban-list.drop-ok{background:var(--info-tint);outline:2px dashed var(--info-fill);outline-offset:-4px}
 .kanban-list.drop-no{outline:2px dashed var(--danger-fill);outline-offset:-4px;cursor:not-allowed}
@@ -175,39 +175,39 @@
 .kanban-card[data-mine]{cursor:grab}
 .kanban-card.dragging{opacity:.45}.kanban-card.saving{opacity:.7}
 .kanban-card.failed{outline:2px solid var(--danger-fill)}
-.kanban-title{font-weight:600;font-size:14px;line-height:1.4;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.kanban-title{font-weight:600;font-size:var(--text-base);line-height:1.4;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
 .kanban-title:hover,.kanban-title:focus-visible{text-decoration:underline}
-.kanban-meta{margin:0;font-size:13px;color:var(--secondary)}
-.kanban-foot{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:13px}
+.kanban-meta{margin:0;font-size:var(--text-sm);color:var(--secondary)}
+.kanban-foot{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:var(--text-sm)}
 .kanban-due{color:var(--secondary)}.kanban-due.late{color:var(--danger-ink);font-weight:600}
-.kanban-move select{width:100%;min-height:36px;font-size:13px}
-.kanban-empty{margin:0;padding:12px;text-align:center;font-size:13px}
+.kanban-move select{width:100%;min-height:36px;font-size:var(--text-sm)}
+.kanban-empty{margin:0;padding:12px;text-align:center;font-size:var(--text-sm)}
 .management-page .task-filters{padding:16px;margin-bottom:20px}
 .management-page .task-filters .form-grid{display:grid;grid-template-columns:minmax(160px,1.5fr) repeat(4,minmax(110px,1fr)) auto;gap:12px;align-items:end}
-.management-page .task-filters label{margin:0;font-size:12px;min-width:0}
+.management-page .task-filters label{margin:0;font-size:var(--text-sm);min-width:0}
 .management-page .task-filters .form-actions{margin:0;padding:0;grid-column:auto;align-self:end}
-.management-page .task-filters input,.management-page .task-filters select{min-height:42px;height:42px;font-size:12px;padding:8px 10px}
+.management-page .task-filters input,.management-page .task-filters select{min-height:42px;height:42px;font-size:var(--text-sm);padding:8px 10px}
 .management-page .kanban-cols{align-items:stretch;scrollbar-width:thin}
 .management-page .kanban-move{margin:6px 0 0}
 .view-toggle{flex-shrink:0;white-space:nowrap}
-@media(max-width:1200px){.management-page .task-filters .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:600px){.management-page .task-filters .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.management-page .task-filters .form-actions .quiet-button{width:100%}}
-@media(max-width:760px){.kanban-cols{grid-template-columns:repeat(4,78vw);scroll-snap-type:x mandatory}.kanban-col{scroll-snap-align:start}}
-@media (prefers-reduced-motion:reduce){.kanban-list{transition:none}}
+@media(max-width:1280px){.management-page .task-filters .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:480px){.management-page .task-filters .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.management-page .task-filters .form-actions .quiet-button{width:100%}}
+@media(max-width:720px){.kanban-cols{grid-template-columns:repeat(4,78vw);scroll-snap-type:x mandatory}.kanban-col{scroll-snap-align:start}}
+@media(prefers-reduced-motion:reduce){.kanban-list{transition:none}}
 
 /* ------------------------------------------------------------------
    Sign-in security (password policy + two-factor)
    ------------------------------------------------------------------ */
-.policy-list{margin:8px 0 14px;padding-left:20px;color:var(--secondary);font-size:14px;display:grid;gap:4px}
+.policy-list{margin:8px 0 14px;padding-left:20px;color:var(--secondary);font-size:var(--text-base);display:grid;gap:4px}
 #security h3{margin-top:22px}
 .security-divider{border:0;border-top:1px solid var(--line);margin:22px 0}
 .security-actions{display:grid;gap:14px;margin-top:10px}
-.inline-field{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:14px;margin-bottom:8px}
+.inline-field{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:var(--text-base);margin-bottom:8px}
 .inline-field input{max-width:280px;flex:1 1 200px}
 .secret-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;letter-spacing:.06em;line-height:1.6;padding:14px 16px;border-radius:12px;background:var(--soft);border:1px dashed var(--line-strong,var(--line));overflow-wrap:anywhere;user-select:all}
 .recovery-block{margin-top:18px;padding:16px;border-radius:14px;background:var(--warn-tint);border:1px solid var(--line)}
 .recovery-codes{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0 0;padding:0}
-.recovery-codes li{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;letter-spacing:.04em;padding:8px 10px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);user-select:all}
+.recovery-codes li{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--text-md);letter-spacing:.04em;padding:8px 10px;border-radius:8px;background:var(--surface-strong);border:1px solid var(--line);user-select:all}
 .danger-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--danger-fill);background:transparent;color:var(--danger-ink);font:inherit;font-weight:600;cursor:pointer}
 .danger-button:hover,.danger-button:focus-visible{background:var(--danger-tint)}
 
@@ -217,14 +217,14 @@
 .management-page .page-header{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 24px;margin:0 0 24px;padding:22px 26px;border-radius:22px}
 .management-page .page-header:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 150% at 0% 0%,rgba(203,23,54,.16),transparent 58%),radial-gradient(100% 130% at 100% 0%,rgba(84,66,150,.18),transparent 62%)}
 .management-page .page-header-copy{display:grid;gap:7px;min-width:0;flex:1 1 320px}
-.management-page .page-header .eyebrow{display:inline-flex;width:max-content;max-width:100%;align-items:center;margin:0;padding:4px 11px;border-radius:999px;background:rgba(203,23,54,.1);border:1px solid rgba(203,23,54,.24);font-size:10px;line-height:1.5;letter-spacing:.16em;text-transform:uppercase}
+.management-page .page-header .eyebrow{display:inline-flex;width:max-content;max-width:100%;align-items:center;margin:0;padding:4px 11px;border-radius:999px;background:rgba(203,23,54,.1);border:1px solid rgba(203,23,54,.24);font-size:var(--text-label);line-height:1.5;letter-spacing:.16em;text-transform:uppercase}
 .management-page .page-header h1{margin:0;font-size:clamp(24px,2.6vw,34px);line-height:1.14;letter-spacing:-.035em}
-.management-page .page-header-lede{margin:0;max-width:68ch;font-size:14px;line-height:1.7;color:var(--secondary)}
+.management-page .page-header-lede{margin:0;max-width:68ch;font-size:var(--text-base);line-height:1.7;color:var(--secondary)}
 .management-page .page-header-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;flex:0 1 auto}
 .management-page .page-header-actions form{margin:0;display:flex;gap:9px}
 [data-theme=dark] .management-page .page-header:before{background:radial-gradient(120% 150% at 0% 0%,rgba(203,23,54,.26),transparent 60%),radial-gradient(100% 130% at 100% 0%,rgba(120,101,214,.24),transparent 62%)}
 [data-theme=dark] .management-page .page-header .eyebrow{background:rgba(203,23,54,.18);border-color:rgba(255,138,158,.36)}
-@media(max-width:760px){
+@media(max-width:720px){
   .management-page .page-header{padding:18px;border-radius:18px;align-items:flex-start}
   .management-page .page-header-actions{width:100%;justify-content:flex-start}
   .management-page .page-header-actions .quiet-button,.management-page .page-header-actions form{flex:1 1 auto}
@@ -239,52 +239,52 @@
 .management-page .search-form input,.management-page .search-form select{flex:1 1 160px;width:auto;min-width:0;min-height:44px}
 .management-page .search-form>label:not(.sr-only) input{width:100%;flex:0 1 auto}
 .management-page .search-form>button{flex:0 0 auto;align-self:flex-end;min-height:44px}
-@media(max-width:640px){.management-page .search-form>button{width:100%}}
+@media(max-width:720px){.management-page .search-form>button{width:100%}}
 
 /* Profile: the email change sits behind a disclosure so the page asks for the
    current password once, in the Sign-in security card, instead of twice. */
 .management-page .email-change{margin:18px 0 6px;padding:0 16px 14px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
-.management-page .email-change>summary{height:auto;min-height:0;margin:0 -16px;padding:14px 16px;font-size:13px;font-weight:600;color:var(--accent)}
+.management-page .email-change>summary{height:auto;min-height:0;margin:0 -16px;padding:14px 16px;font-size:var(--text-sm);font-weight:600;color:var(--accent)}
 .management-page .email-change[open]>summary{margin-bottom:16px;border-bottom:1px solid var(--line)}
 .management-page .email-change .form-grid{margin:0}
-.management-page .email-change>.muted{margin:12px 0 0;font-size:12px}
+.management-page .email-change>.muted{margin:12px 0 0;font-size:var(--text-sm)}
 
 /* System health (superadmin). A warning row is the only coloured thing on the
    page, so the dot carries the state and the text stays readable in both themes. */
 .management-page .health-status{margin-bottom:18px}
-.management-page .health-badge{margin:0 0 14px;font-size:13px;font-weight:600}
+.management-page .health-badge{margin:0 0 14px;font-size:var(--text-sm);font-weight:600}
 .management-page .health-ok .health-badge{color:var(--accent)}
 .management-page .health-warn .health-badge{color:#b4530f}
 .management-page .health-checks{display:grid;gap:2px;margin:0;padding:0;list-style:none}
 .management-page .health-check{display:grid;grid-template-columns:22px minmax(140px,180px) 1fr;gap:4px 12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line)}
 .management-page .health-check:first-child{border-top:0}
-.management-page .health-dot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700}
+.management-page .health-dot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:var(--text-meta);font-weight:700}
 .management-page .health-check.is-ok .health-dot{background:rgba(22,163,74,.14);color:#15803d}
 .management-page .health-check.is-warn .health-dot{background:rgba(180,83,15,.16);color:#b4530f}
-.management-page .health-label{font-size:13px;font-weight:600}
-.management-page .health-detail{font-size:12px;color:var(--muted);word-break:break-word}
+.management-page .health-label{font-size:var(--text-sm);font-weight:600}
+.management-page .health-detail{font-size:var(--text-meta);color:var(--muted);word-break:break-word}
 .management-page .health-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:18px}
 .management-page .health-facts{display:grid;gap:8px;margin:12px 0 0}
-.management-page .health-facts>div{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.management-page .health-facts>div{display:flex;justify-content:space-between;gap:12px;font-size:var(--text-meta)}
 .management-page .health-facts dt{color:var(--muted)}
 .management-page .health-facts dd{margin:0;font-weight:600}
-.management-page .health-exception{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--muted)}
-.management-page .health-schedule{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:11px;overflow-x:auto;white-space:pre}
+.management-page .health-exception{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--text-meta);color:var(--muted)}
+.management-page .health-schedule{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:var(--text-meta);overflow-x:auto;white-space:pre}
 
 /* Inbox (needs-you queue). The badge is the only thing that should pull the eye:
    a supervisor should be able to tell from the sidebar whether anything is
    waiting without opening the page. */
-.management-page .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1}
+.management-page .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:var(--text-meta);font-weight:700;line-height:1}
 .management-page .inbox-section{margin-bottom:16px}
 .management-page .inbox-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .management-page .inbox-head h2{margin:0}
-.management-page .inbox-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:11px;font-weight:700;vertical-align:middle}
-.management-page .inbox-lede{margin:6px 0 14px;font-size:12px}
+.management-page .inbox-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:var(--text-meta);font-weight:700;vertical-align:middle}
+.management-page .inbox-lede{margin:6px 0 14px;font-size:var(--text-sm)}
 .management-page .inbox-row{display:grid;grid-template-columns:1fr minmax(220px,300px);gap:16px;align-items:start}
-.management-page .inbox-row h3{margin:0 0 4px;font-size:14px}
+.management-page .inbox-row h3{margin:0 0 4px;font-size:var(--text-base)}
 .management-page .inbox-actions:empty{display:none}
 .management-page .inbox-actions .form-grid{gap:8px;margin:0}
 .management-page .inbox-actions textarea{min-height:56px}
 .management-page .inbox-actions .primary-button{width:100%}
 .management-page .inbox-notice{margin-bottom:16px;background:rgba(180,83,15,.08)}
-@media (max-width:760px){.management-page .inbox-row{grid-template-columns:1fr}}
+@media(max-width:720px){.management-page .inbox-row{grid-template-columns:1fr}}

@@ -201,6 +201,30 @@ resources/views/        Blade views; the shared shell is management/shell.blade.
 routes/                 web.php, console.php (schedule)
 ```
 
+## Type scale and breakpoints
+
+`theme.css` defines the only type steps in the product. Declare `font-size` with one of
+them rather than a new `px`:
+
+| token | size | for |
+| --- | --- | --- |
+| `--text-label` | 11px | uppercase micro-labels only — eyebrows, `th`, sidebar captions. The one step under 12px |
+| `--text-meta` | 12px | the floor for everything else: badges, timestamps, helper text, table cells |
+| `--text-sm` | 13px | dense UI — buttons, inputs, nav, prose inside cards |
+| `--text-base` | 14px | default body text |
+| `--text-md` | 15px | ledes and emphasised prose |
+| `--text-lg` / `--text-xl` | 17px / 20px | section headings |
+
+Display headings above that still carry their own `clamp()`/`px` size; nothing else
+should. Malay strings run 15–30 % longer than English, so the floor matters: sub-12px
+body text is what made the bilingual tables hard to read.
+
+Widths used to be fifteen different values across the stylesheets. There are four now —
+**480, 720, 1000, 1280** — and nothing else. `720px` collapses the sidebar, `1000px` the
+two-column grids, `480px` the phone layout. A `min-width` query pairs with the step above
+it (`min-width:721px` beside `max-width:720px`) so the bands never overlap, and
+`max-height` queries are a separate axis for short viewports.
+
 ## Authorization
 
 Every decision goes through `app/Policies/`. Controllers may still answer `404` for a
