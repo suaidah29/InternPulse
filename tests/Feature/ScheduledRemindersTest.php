@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\Reminders;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -148,7 +149,7 @@ class ScheduledRemindersTest extends TestCase
 
     public function test_the_schedule_is_registered(): void
     {
-        $commands = collect(app(\Illuminate\Console\Scheduling\Schedule::class)->events())
+        $commands = collect(app(Schedule::class)->events())
             ->map(fn ($event) => $event->command)
             ->filter()
             ->implode(' ');

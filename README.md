@@ -211,10 +211,15 @@ account act on this person's work* — lives in one place per subject.
 `tests/Feature/AuthorizationPolicyTest.php` asserts the matrix per role through the
 Gate, so changing a rule means arguing with that file.
 
+## Style
+
+There is no `pint.json`: the Laravel preset is the whole standard. `vendor/bin/pint`
+fixes, `vendor/bin/pint --test` reports, and the CI `Style (Pint)` job runs the latter on
+the full tree — formatting is a build failure, not a review comment. Run
+`vendor/bin/pint --dirty` before committing and CI should never be the one to tell you.
+
 ## Known gaps
 
-- **No CI style check.** Pint passes on most files but not all; run
-  `vendor/bin/pint` before gating it in CI.
 - **No holiday awareness** — a weekday public holiday still sends "you have not
   logged today".
 - **Pagination is partial** — people, tasks, records and the audit log paginate;

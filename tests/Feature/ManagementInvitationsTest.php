@@ -152,6 +152,6 @@ class ManagementInvitationsTest extends TestCase
         $manager = $this->management();
         $sent = app(SupervisorInvitations::class)->send(['name' => 'Local delivery check', 'email' => 'delivery-check@internpulse.test', 'department' => 'Testing'], $manager->id);
         $this->assertTrue($sent);
-        $this->assertDatabaseHas('supervisor_invitations',['email' => 'delivery-check@internpulse.test', 'delivery_status' => 'sent']);
+        $this->assertDatabaseHas('supervisor_invitations', ['email' => 'delivery-check@internpulse.test', 'delivery_status' => 'sent']);
     }
 }

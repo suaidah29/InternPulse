@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\SystemHealth;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -155,9 +157,9 @@ class SystemHealthTest extends TestCase
         $this->assertNotNull(Cache::get('schedule_heartbeat'), 'Running the event must record the heartbeat.');
     }
 
-    private function scheduledEvent(string $description): \Illuminate\Console\Scheduling\Event
+    private function scheduledEvent(string $description): Event
     {
-        $schedule = app(\Illuminate\Console\Scheduling\Schedule::class);
+        $schedule = app(Schedule::class);
 
         foreach ($schedule->events() as $event) {
             if ($event->description === $description) {

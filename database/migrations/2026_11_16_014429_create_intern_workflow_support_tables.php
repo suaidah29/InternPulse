@@ -34,6 +34,7 @@ return new class extends Migration
             $table->unique(['intern_id', 'period']);
         });
     }
+
     public function down(): void
     {
         Schema::dropIfExists('intern_evaluations');

@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\TwoFactor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class TwoFactorTest extends TestCase

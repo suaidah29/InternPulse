@@ -15,6 +15,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Style first: it finishes in seconds, so a formatting slip is reported before
+  # anyone waits on two PHP versions of the suite.
+  style:
+    name: Style (Pint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          # Pint itself needs json, mbstring, tokenizer and xml.
+          extensions: mbstring, dom, json, tokenizer, xml
+          coverage: none
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-style-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-style-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # No -d/--dirty: the whole tree is checked, so nothing drifts back out of style.
+      - name: Check formatting
+        run: vendor/bin/pint --test --ansi
+
   tests:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
