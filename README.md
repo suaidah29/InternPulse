@@ -208,8 +208,8 @@ them rather than a new `px`:
 
 | token | size | for |
 | --- | --- | --- |
-| `--text-label` | 11px | uppercase micro-labels only — eyebrows, `th`, sidebar captions. The one step under 12px |
-| `--text-meta` | 12px | the floor for everything else: badges, timestamps, helper text, table cells |
+| `--text-label` | 11px | uppercase micro-labels only — `th`, sidebar captions. The one step under 12px, and only for text that renders in caps |
+| `--text-meta` | 12px | the floor for everything else: eyebrows, badges, timestamps, chart captions, helper text, table cells |
 | `--text-sm` | 13px | dense UI — buttons, inputs, nav, prose inside cards |
 | `--text-base` | 14px | default body text |
 | `--text-md` | 15px | ledes and emphasised prose |
