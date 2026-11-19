@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
@@ -94,7 +95,7 @@ class PasswordPolicyTest extends TestCase
     {
         Notification::fake();
         $user = User::factory()->create(['role' => 'intern', 'name' => 'Aina Test', 'email' => 'aina@example.test']);
-        $token = \Illuminate\Support\Facades\Password::createToken($user);
+        $token = Password::createToken($user);
 
         $this->post(route('password.update'), ['token' => $token, 'email' => $user->email, 'password' => 'Aina!Strong2026', 'password_confirmation' => 'Aina!Strong2026'])
             ->assertSessionHasErrors('password');

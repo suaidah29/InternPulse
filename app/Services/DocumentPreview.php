@@ -49,7 +49,9 @@ class DocumentPreview
             foreach ($xpath->query('//w:body//w:p') as $paragraph) {
                 $line = '';
                 foreach ($xpath->query('.//w:t | .//w:tab | .//w:br', $paragraph) as $node) {
-                    $line .= match ($node->localName) { 'tab' => "\t", 'br' => "\n", default => $node->textContent };
+                    $line .= match ($node->localName) {
+                        'tab' => "\t", 'br' => "\n", default => $node->textContent
+                    };
                 }
                 $paragraphs[] = $line;
             }

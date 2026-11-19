@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use App\Services\TwoFactor;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -54,7 +55,7 @@ class User extends Authenticatable
     public function consumeRecoveryCode(string $code): bool
     {
         $codes = $this->recoveryCodes();
-        $index = \App\Services\TwoFactor::matchRecoveryCode($codes, $code);
+        $index = TwoFactor::matchRecoveryCode($codes, $code);
         if ($index === null) {
             return false;
         }

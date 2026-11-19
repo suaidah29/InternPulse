@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -115,7 +117,7 @@ final class ActionQueue
      * Same rule as TeamScope, expressed as a query so a superadmin scope costs no
      * PHP memory at all.
      */
-    private function taskCountScope(User $user): \Illuminate\Database\Query\Builder
+    private function taskCountScope(User $user): Builder
     {
         $query = DB::table('work_tasks')->whereNull('archived_at');
 
@@ -189,7 +191,7 @@ final class ActionQueue
                 'id' => $row->id,
                 'title' => $row->title,
                 'who' => $names[$row->user_id] ?? '—',
-                'meta' => 'Submitted '.\Carbon\Carbon::parse($row->created_at)->timezone('Asia/Kuala_Lumpur')->format('d M Y H:i'),
+                'meta' => 'Submitted '.Carbon::parse($row->created_at)->timezone('Asia/Kuala_Lumpur')->format('d M Y H:i'),
             ]);
     }
 
@@ -209,7 +211,7 @@ final class ActionQueue
                 'id' => $row->id,
                 'title' => $row->attendance_date,
                 'who' => $names[$row->user_id] ?? '—',
-                'meta' => 'Checked in '.\Carbon\Carbon::parse($row->checked_in_at)->timezone('Asia/Kuala_Lumpur')->format('H:i').' MYT',
+                'meta' => 'Checked in '.Carbon::parse($row->checked_in_at)->timezone('Asia/Kuala_Lumpur')->format('H:i').' MYT',
                 'photo' => route('workspace.files', ['type' => 'attendance', 'id' => $row->id]),
                 'review_type' => 'attendance',
             ]);
@@ -249,7 +251,7 @@ final class ActionQueue
                 'id' => $row->id,
                 'title' => $row->title,
                 'who' => $names[$row->assigned_to] ?? '—',
-                'meta' => 'Due '.$row->due_date.' — '.(int) round(\Carbon\Carbon::parse($row->due_date)->diffInDays($today, true)).' day(s) late',
+                'meta' => 'Due '.$row->due_date.' — '.(int) round(Carbon::parse($row->due_date)->diffInDays($today, true)).' day(s) late',
                 'href' => route('workspace.tasks.show', $row->id),
             ]);
     }

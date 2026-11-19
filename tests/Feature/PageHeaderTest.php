@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use Tests\TestCase;
 
 /**
@@ -111,7 +112,7 @@ class PageHeaderTest extends TestCase
 
         $html = $this->blade(
             '<x-page-header :eyebrow="$t(\'EYEBROW\',\'EYEBROW MS\')" :heading="$raw" :lede="$t(\'Line of context\',\'Baris konteks\')" />',
-            ['t' => fn (string $en, string $ms) => new \Illuminate\Support\HtmlString('<span data-en="'.e($en).'" data-ms="'.e($ms).'">'.e($en).'</span>'), 'raw' => 'Fix <script>alert(1)</script> now']
+            ['t' => fn (string $en, string $ms) => new HtmlString('<span data-en="'.e($en).'" data-ms="'.e($ms).'">'.e($en).'</span>'), 'raw' => 'Fix <script>alert(1)</script> now']
         )->__toString();
 
         $this->assertStringContainsString('class="glass page-header"', $html);

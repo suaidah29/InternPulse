@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -98,7 +99,7 @@ class SystemHealth
 
         if (is_string($heartbeat)) {
             try {
-                $age = (int) round(now()->diffInMinutes(\Carbon\Carbon::parse($heartbeat), true));
+                $age = (int) round(now()->diffInMinutes(Carbon::parse($heartbeat), true));
             } catch (Throwable) {
                 $heartbeat = null;
             }
@@ -181,7 +182,7 @@ class SystemHealth
             'label' => 'Queue worker',
             'ok' => ! $workerDown,
             'detail' => $queue['pending'] === null
-                ? 'No jobs table on this connection (' . $queue['connection'] . ' runs inline).'
+                ? 'No jobs table on this connection ('.$queue['connection'].' runs inline).'
                 : ($workerDown
                     ? $queue['pending'].' job(s) waiting, oldest for '.$queue['oldest_minutes'].' minutes — run `php artisan queue:work`.'
                     : ($queue['pending'] === 0 ? 'Queue is empty.' : $queue['pending'].' job(s) waiting, oldest '.$queue['oldest_minutes'].' minutes.')),
